@@ -295,3 +295,93 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Player range inputs.
+   Native <input type="range"> is used for both the scrub bar and the volume
+   slider so keyboard and screen-reader support come for free; these rules only
+   change how it looks. In RTL the track fills from the right automatically.
+--------------------------------------------------------------------------- */
+.player-scrub,
+.player-volume {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  margin: 0;
+}
+
+.player-scrub::-webkit-slider-runnable-track,
+.player-scrub::-moz-range-track {
+  height: 100%;
+  background: transparent;
+}
+
+.player-scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: var(--brand);
+  border: 2px solid var(--canvas);
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out-soft);
+}
+.player-scrub::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--brand);
+  border: 2px solid var(--canvas);
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out-soft);
+}
+
+.group\/scrub:hover .player-scrub::-webkit-slider-thumb,
+.player-scrub:focus-visible::-webkit-slider-thumb {
+  opacity: 1;
+}
+.group\/scrub:hover .player-scrub::-moz-range-thumb,
+.player-scrub:focus-visible::-moz-range-thumb {
+  opacity: 1;
+}
+
+.player-volume {
+  height: 20px;
+}
+.player-volume::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+.player-volume::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+.player-volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border-radius: 999px;
+  background: var(--ink-muted);
+}
+.player-volume::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink-muted);
+}
+.player-volume:hover::-webkit-slider-thumb {
+  background: var(--brand);
+}
+.player-volume:hover::-moz-range-thumb {
+  background: var(--brand);
+}
+
+/* Keeps the last section clear of the fixed player bar. */
+body:has(.player-bar-active) {
+  padding-bottom: 5rem;
+}
