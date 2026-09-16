@@ -2,11 +2,13 @@ import { Search, X } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { JsonLd } from "@/components/seo/json-ld";
 import { EpisodeCard } from "@/components/site/episode-card";
 import { PageHeader } from "@/components/site/page-header";
 import { Pagination } from "@/components/site/pagination";
 import { buttonStyles } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
+import { breadcrumbSchema, collectionPageSchema, graph, podcastSeriesSchema } from "@/lib/structured-data";
 import { cn, toFaDigits } from "@/lib/utils";
 import { getEpisodes } from "@/server/episodes";
 import { getTopics } from "@/server/topics";
@@ -56,6 +58,22 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
 
   return (
     <>
+      <JsonLd
+        data={graph(
+          podcastSeriesSchema(),
+          collectionPageSchema({
+            name: "همه‌ی اپیزودها",
+            description: `آرشیو کامل اپیزودهای ${siteConfig.name}.`,
+            path: "/episodes",
+            episodes,
+          }),
+          breadcrumbSchema([
+            { name: "خانه", path: "/" },
+            { name: "اپیزودها", path: "/episodes" },
+          ]),
+        )}
+      />
+
       <PageHeader
         eyebrow="آرشیو"
         title="همه‌ی اپیزودها"

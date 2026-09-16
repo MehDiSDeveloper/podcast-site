@@ -31,6 +31,12 @@ export const siteConfig = {
     /** Headline used on the home hero and in Person structured data. */
     role: "کوچ، مدرس و مشاور توسعه‌ی فردی و سازمانی",
     email: "hello@example.com",
+    /**
+     * Real, verifiable credentials (degrees, certifications, notable clients).
+     * Left empty on purpose: the About page hides this section until it has
+     * true entries, so the site never shows placeholder claims to a recruiter.
+     */
+    credentials: [] as string[],
   },
 
   /** Empty strings are skipped everywhere they are rendered. */
