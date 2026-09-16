@@ -1,0 +1,211 @@
+// Prisma schema.
+//
+// SQLite keeps local setup to zero config. Moving to Postgres later is a
+// two-line change: swap `provider` below and the adapter in src/server/db.ts.
+// For that reason this schema avoids SQLite-only behaviour, and models status
+// fields as strings (SQLite has no native enums) whose allowed values are
+// enforced in one place: src/lib/enums.ts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------------------------------------------------------------- auth
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  name         String
+  email        String?  @unique
+  passwordHash String
+  role         String   @default("ADMIN")
+  isActive     Boolean  @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions Session[]
+
+  @@map("users")
+}
+
+/// Server-side sessions. The cookie carries a random opaque token; only its
+/// SHA-256 hash is stored, so a database leak cannot be replayed as a login.
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent String?
+  ipHash    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ------------------------------------------------------------- podcast
+
+/// The podcast series itself. Modelled as a row rather than a constant so the
+/// admin can edit feed metadata, and so a second show can be added later.
+model Show {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  title       String
+  subtitle    String?
+  description String
+  coverImage  String?
+
+  author     String
+  ownerName  String
+  ownerEmail String
+  language   String  @default("fa-IR")
+  category   String  @default("Education")
+  subcategory String?
+  explicit   Boolean @default(false)
+  copyright  String?
+
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodes Episode[]
+
+  @@map("shows")
+}
+
+model Episode {
+  id     String @id @default(cuid())
+  slug   String @unique
+  showId String
+
+  title       String
+  subtitle    String?
+  /// Short summary used on cards, meta descriptions and itunes:summary.
+  description String
+  /// Long-form show notes, stored as HTML produced by the admin editor.
+  showNotes   String?
+  /// Full transcript. Empty for now; a major SEO win once filled in.
+  transcript  String?
+
+  episodeNumber Int?
+  seasonNumber  Int?
+  /// full | trailer | bonus
+  episodeType   String @default("full")
+
+  /// Absolute URL for externally hosted audio, or /uploads/... when uploaded here.
+  audioUrl        String
+  /// Required by the RSS <enclosure> tag; 0 when unknown.
+  audioSizeBytes  Int    @default(0)
+  audioMimeType   String @default("audio/mpeg")
+  durationSeconds Int    @default(0)
+
+  coverImage String?
+
+  /// DRAFT | SCHEDULED | PUBLISHED
+  status      String    @default("DRAFT")
+  publishedAt DateTime?
+  featured    Boolean   @default(false)
+  explicit    Boolean   @default(false)
+
+  seoTitle       String?
+  seoDescription String?
+
+  playCount Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  show   Show           @relation(fields: [showId], references: [id], onDelete: Cascade)
+  topics EpisodeTopic[]
+
+  @@index([showId])
+  @@index([status, publishedAt])
+  @@index([featured])
+  @@map("episodes")
+}
+
+/// Shared taxonomy. Articles and videos will join onto the same topics later,
+/// which is what makes topic pages work as long-lived SEO pillar pages.
+model Topic {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  /// One-line summary for cards and meta descriptions.
+  description String?
+  /// Long-form pillar content rendered above the episode list.
+  body        String?
+  accentColor String?
+  sortOrder   Int     @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodes EpisodeTopic[]
+
+  @@map("topics")
+}
+
+model EpisodeTopic {
+  episodeId String
+  topicId   String
+
+  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([episodeId, topicId])
+  @@index([topicId])
+  @@map("episode_topics")
+}
+
+// ------------------------------------------------------------ business
+
+/// A collaboration request from the contact form — the site's primary
+/// conversion event, so it is a first-class model rather than an email.
+model Inquiry {
+  id String @id @default(cuid())
+
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  roleTitle String?
+
+  /// COACHING_INDIVIDUAL | COACHING_TEAM | WORKSHOP | CONSULTING | SPEAKING | OTHER
+  collaborationType String
+  teamSize          String?
+  budgetRange       String?
+  timeline          String?
+  message           String
+
+  /// NEW | READ | REPLIED | ARCHIVED
+  status      String  @default("NEW")
+  /// Private admin-only notes.
+  adminNotes  String?
+
+  /// Where the visitor came from, for attribution.
+  sourcePath String?
+  referrer   String?
+
+  /// Hashed, never the raw address — used only for rate limiting and spam triage.
+  ipHash    String?
+  userAgent String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  readAt    DateTime?
+
+  @@index([status, createdAt])
+  @@index([ipHash, createdAt])
+  @@map("inquiries")
+}

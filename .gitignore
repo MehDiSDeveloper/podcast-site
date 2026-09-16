@@ -50,3 +50,6 @@ next-env.d.ts
 # user uploads
 /public/uploads/*
 !/public/uploads/.gitkeep
+
+# generated prisma client
+/src/generated
