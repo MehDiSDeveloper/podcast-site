@@ -1,26 +1,297 @@
 @import "tailwindcss";
 
+/* Class-based dark mode so the user's explicit choice can beat the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Palette — "ink & teal, warmed with amber".
+   Chosen for a calm, credible, editorial feel: warm paper in light mode, deep
+   blue-black in dark mode, one cool brand hue and one warm accent. Values are
+   OKLCH so lightness steps stay perceptually even across both themes.
+--------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: oklch(0.992 0.004 85);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.972 0.006 85);
+  --line: oklch(0.905 0.007 85);
+  --line-strong: oklch(0.83 0.01 85);
+
+  --ink: oklch(0.23 0.018 264);
+  --ink-muted: oklch(0.48 0.017 264);
+  --ink-subtle: oklch(0.62 0.014 264);
+  --ink-inverse: oklch(0.985 0.003 85);
+
+  --brand: oklch(0.52 0.098 205);
+  --brand-strong: oklch(0.43 0.098 208);
+  --brand-soft: oklch(0.955 0.021 200);
+  --brand-contrast: oklch(0.99 0.004 200);
+
+  --accent: oklch(0.7 0.14 62);
+  --accent-soft: oklch(0.96 0.035 75);
+  --accent-contrast: oklch(0.22 0.04 62);
+
+  --success: oklch(0.55 0.12 155);
+  --warning: oklch(0.72 0.14 78);
+  --danger: oklch(0.55 0.19 22);
+  --danger-soft: oklch(0.96 0.03 22);
+
+  --ring: oklch(0.52 0.098 205 / 0.45);
+
+  --shadow-color: 220 30% 22%;
+}
+
+.dark {
+  --canvas: oklch(0.175 0.014 264);
+  --surface: oklch(0.212 0.015 264);
+  --surface-2: oklch(0.252 0.016 264);
+  --line: oklch(0.312 0.016 264);
+  --line-strong: oklch(0.4 0.018 264);
+
+  --ink: oklch(0.955 0.005 85);
+  --ink-muted: oklch(0.735 0.013 264);
+  --ink-subtle: oklch(0.605 0.015 264);
+  --ink-inverse: oklch(0.2 0.015 264);
+
+  --brand: oklch(0.755 0.098 200);
+  --brand-strong: oklch(0.84 0.09 198);
+  --brand-soft: oklch(0.29 0.038 205);
+  --brand-contrast: oklch(0.17 0.02 205);
+
+  --accent: oklch(0.79 0.13 68);
+  --accent-soft: oklch(0.3 0.045 62);
+  --accent-contrast: oklch(0.18 0.03 62);
+
+  --success: oklch(0.72 0.13 155);
+  --warning: oklch(0.8 0.13 80);
+  --danger: oklch(0.68 0.16 22);
+  --danger-soft: oklch(0.3 0.06 22);
+
+  --ring: oklch(0.755 0.098 200 / 0.5);
+
+  --shadow-color: 235 45% 4%;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-inverse: var(--ink-inverse);
+
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-contrast: var(--brand-contrast);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-contrast: var(--accent-contrast);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --font-sans: var(--font-vazirmatn), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  --shadow-subtle: 0 1px 2px hsl(var(--shadow-color) / 0.06);
+  --shadow-card: 0 1px 2px hsl(var(--shadow-color) / 0.05), 0 8px 24px -12px hsl(var(--shadow-color) / 0.14);
+  --shadow-lifted: 0 2px 4px hsl(var(--shadow-color) / 0.06), 0 16px 40px -16px hsl(var(--shadow-color) / 0.22);
+  --shadow-player: 0 -1px 0 hsl(var(--shadow-color) / 0.08), 0 -12px 40px -16px hsl(var(--shadow-color) / 0.25);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    /* Keeps anchored headings clear of the sticky header. */
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-feature-settings: "ss01", "kern";
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Persian text reads better with slightly looser lines and no letter-spacing. */
+  :lang(fa) {
+    letter-spacing: 0;
+    line-height: 1.85;
+  }
+
+  h1, h2, h3, h4 {
+    line-height: 1.45;
+    text-wrap: balance;
+    font-weight: 700;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Persian digits render inconsistently in monospace contexts, so timers and
+     counters opt into tabular Latin figures via .nums instead. */
+  .nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--brand-soft);
+    color: var(--ink);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 999px;
+    border: 2px solid var(--canvas);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-subtle);
+  }
+
+  input, textarea, select, button {
+    font: inherit;
+    color: inherit;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Shared page gutter — one place to retune horizontal rhythm site-wide. */
+  .container-page {
+    width: 100%;
+    margin-inline: auto;
+    max-width: 75rem;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* Skip link: visually hidden until focused by keyboard. */
+  .skip-link {
+    position: fixed;
+    inset-inline-start: 1rem;
+    top: -6rem;
+    z-index: 100;
+    border-radius: var(--radius-sm);
+    background-color: var(--brand);
+    color: var(--brand-contrast);
+    padding: 0.625rem 1rem;
+    font-weight: 600;
+    transition: top 180ms var(--ease-out-soft);
+  }
+  .skip-link:focus {
+    top: 1rem;
+  }
+}
+
+@layer utilities {
+  /* Long-form show notes / bios. Hand-rolled so Persian spacing and RTL lists
+     behave, rather than overriding a generic typography plugin. */
+  .rich-text {
+    color: var(--ink-muted);
+    line-height: 2;
+  }
+  .rich-text > * + * {
+    margin-block-start: 1.15em;
+  }
+  .rich-text h2,
+  .rich-text h3,
+  .rich-text h4 {
+    color: var(--ink);
+    margin-block-start: 2em;
+    margin-block-end: 0.75em;
+  }
+  .rich-text h2 { font-size: 1.375rem; }
+  .rich-text h3 { font-size: 1.15rem; }
+  .rich-text a {
+    color: var(--brand-strong);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  .rich-text a:hover {
+    text-decoration-thickness: 2px;
+  }
+  .rich-text strong {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .rich-text ul,
+  .rich-text ol {
+    padding-inline-start: 1.5rem;
+  }
+  .rich-text ul { list-style: disc; }
+  .rich-text ol { list-style: decimal; }
+  .rich-text li::marker { color: var(--brand); }
+  .rich-text li + li { margin-block-start: 0.5em; }
+  .rich-text blockquote {
+    border-inline-start: 3px solid var(--accent);
+    padding-inline-start: 1.25rem;
+    color: var(--ink);
+    font-size: 1.05em;
+  }
+  .rich-text code {
+    background-color: var(--surface-2);
+    border-radius: var(--radius-xs);
+    padding: 0.15em 0.4em;
+    font-size: 0.9em;
+  }
+  .rich-text hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin-block: 2.5em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
