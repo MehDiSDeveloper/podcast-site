@@ -1,3 +1,5 @@
+// Lives in the (archive) group so this skeleton does not wrap /episodes/[slug]:
+// a Suspense boundary above that page would make notFound() answer 200, not 404.
 /** Skeleton shown while the (dynamic) episode list streams in. */
 export default function EpisodesLoading() {
   return (

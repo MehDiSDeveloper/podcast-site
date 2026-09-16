@@ -61,6 +61,20 @@ const RESUME_TAIL_GUARD = 15;
 
 export const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 1.75, 2] as const;
 
+/** Reports a play once per episode per browser session, fire-and-forget. */
+function countPlay(trackId: string) {
+  const key = `player:counted:${trackId}`;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+  } catch {
+    // Without storage we may over-count slightly; that is acceptable.
+  }
+  void fetch(`/api/episodes/${encodeURIComponent(trackId)}/play`, { method: "POST", keepalive: true }).catch(
+    () => undefined,
+  );
+}
+
 function readPrefs(): { volume: number; playbackRate: number; isMuted: boolean } {
   const fallback = { volume: 1, playbackRate: 1, isMuted: false };
   try {
@@ -159,6 +173,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         patch({ currentTime: resumeAt });
       }
 
+      countPlay(track.id);
       void play(audio);
     },
     [patch, persistPosition, play, state.track?.id],

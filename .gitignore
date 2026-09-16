@@ -47,9 +47,8 @@ next-env.d.ts
 /prisma/*.db-shm
 /prisma/*.db-wal
 
-# user uploads
-/public/uploads/*
-!/public/uploads/.gitkeep
+# runtime uploads (served by src/app/uploads/[...path]/route.ts)
+/storage
 
 # generated prisma client
 /src/generated
