@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/site/page-header";
 import { Pagination } from "@/components/site/pagination";
 import { buttonStyles } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
-import { cn } from "@/lib/utils";
+import { cn, toFaDigits } from "@/lib/utils";
 import { getEpisodes } from "@/server/episodes";
 import { getTopics } from "@/server/topics";
 
@@ -113,7 +113,7 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
                 className={chipStyles(topic === item.slug)}
               >
                 {item.name}
-                <span className="nums mr-1.5 text-xs opacity-60">{item.episodeCount}</span>
+                <span className="nums mr-1.5 text-xs opacity-60">{toFaDigits(item.episodeCount)}</span>
               </Link>
             ))}
           </div>
@@ -122,7 +122,7 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
         {/* Result summary + sort */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
           <p className="text-sm text-ink-muted" aria-live="polite">
-            <span className="nums font-bold text-ink">{total}</span> اپیزود
+            <span className="nums font-bold text-ink">{toFaDigits(total)}</span> اپیزود
             {search ? <> برای «{search}»</> : null}
           </p>
           <div className="flex items-center gap-1 text-sm">

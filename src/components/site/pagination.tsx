@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
-import { cn } from "@/lib/utils";
+import { cn, toFaDigits } from "@/lib/utils";
 
 /**
  * Link-based pagination so every page is crawlable and works without JS.
@@ -42,10 +42,10 @@ export function Pagination({
             key={entry}
             href={buildHref(entry)}
             active={entry === page}
-            aria-label={`صفحه‌ی ${entry}`}
+            aria-label={`صفحه‌ی ${toFaDigits(entry)}`}
             aria-current={entry === page ? "page" : undefined}
           >
-            <span className="nums">{entry}</span>
+            <span className="nums">{toFaDigits(entry)}</span>
           </PageLink>
         ),
       )}

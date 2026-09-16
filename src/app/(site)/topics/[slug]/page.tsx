@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/site/page-header";
 import { buttonStyles } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { breadcrumbSchema, collectionPageSchema, graph, personSchema } from "@/lib/structured-data";
-import { truncate } from "@/lib/utils";
+import { toFaDigits, truncate } from "@/lib/utils";
 import { getEpisodes } from "@/server/episodes";
 import { getAllTopics, getTopicBySlug, getTopics } from "@/server/topics";
 
@@ -104,7 +104,7 @@ export default async function TopicPage({ params }: PageProps<"/topics/[slug]">)
 
         <div className="mt-12 flex items-baseline justify-between gap-4 border-b border-line pb-4">
           <h2 className="text-2xl">اپیزودهای این موضوع</h2>
-          <p className="nums text-sm text-ink-muted">{total} اپیزود</p>
+          <p className="nums text-sm text-ink-muted">{toFaDigits(total)} اپیزود</p>
         </div>
 
         {episodes.length === 0 ? (
@@ -135,7 +135,7 @@ export default async function TopicPage({ params }: PageProps<"/topics/[slug]">)
                     className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
                   >
                     {item.name}
-                    <span className="nums text-xs opacity-60">{item.episodeCount}</span>
+                    <span className="nums text-xs opacity-60">{toFaDigits(item.episodeCount)}</span>
                   </Link>
                 </li>
               ))}

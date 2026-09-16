@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { PageHeader } from "@/components/site/page-header";
 import { siteConfig } from "@/config/site";
 import { breadcrumbSchema, graph, websiteSchema } from "@/lib/structured-data";
+import { toFaDigits } from "@/lib/utils";
 import { getTopics } from "@/server/topics";
 
 export const metadata: Metadata = {
@@ -53,7 +54,7 @@ export default async function TopicsPage() {
                       {topic.name}
                     </h2>
                     <span className="nums shrink-0 rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand-strong">
-                      {topic.episodeCount} اپیزود
+                      {toFaDigits(topic.episodeCount)} اپیزود
                     </span>
                   </div>
                   {topic.description ? (

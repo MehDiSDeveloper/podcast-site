@@ -18,7 +18,7 @@ import {
   podcastSeriesSchema,
 } from "@/lib/structured-data";
 import { sanitizeHtml } from "@/lib/sanitize";
-import { formatDate, formatDurationLabel, toISODate, truncate } from "@/lib/utils";
+import { formatDate, formatDurationLabel, toFaDigits, toISODate, truncate } from "@/lib/utils";
 import {
   getAllPublishedEpisodes,
   getEpisodeBySlug,
@@ -118,7 +118,7 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
               {episode.episodeNumber ? (
                 <span className="nums inline-flex items-center gap-1.5 font-semibold text-brand-strong">
                   <Hash className="size-4" aria-hidden="true" />
-                  اپیزود {episode.episodeNumber}
+                  اپیزود {toFaDigits(episode.episodeNumber)}
                 </span>
               ) : null}
               {episode.publishedAt ? (

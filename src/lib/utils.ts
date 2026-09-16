@@ -17,7 +17,23 @@ export function slugify(input: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-/** `3725` -> `"1:02:05"`. Used by the player and by itunes:duration. */
+const FA_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
+
+/**
+ * Latin digits -> Persian digits.
+ *
+ * Intl already localises dates, but numbers we interpolate ourselves (counts,
+ * durations, episode numbers) would otherwise mix «۱۸ شهریور» with «41 دقیقه»
+ * on the same line. Everything user-facing goes through this.
+ */
+export function toFaDigits(input: string | number): string {
+  return String(input).replace(/[0-9]/g, (digit) => FA_DIGITS[Number(digit)]);
+}
+
+/**
+ * `3725` -> `"1:02:05"`, with Latin digits. Used by itunes:duration, which
+ * must be machine-readable; use `formatClock` for anything shown on screen.
+ */
 export function formatDuration(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return "0:00";
   const seconds = Math.floor(totalSeconds % 60);
@@ -27,13 +43,20 @@ export function formatDuration(totalSeconds: number): string {
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
 }
 
+/** On-screen clock for the player, e.g. «۱:۰۲:۰۵». */
+export function formatClock(totalSeconds: number): string {
+  return toFaDigits(formatDuration(totalSeconds));
+}
+
 /** Human duration for cards and screen readers, e.g. «۴۲ دقیقه». */
 export function formatDurationLabel(totalSeconds: number): string {
-  const minutes = Math.round(totalSeconds / 60);
-  if (minutes < 60) return `${minutes} دقیقه`;
+  const minutes = Math.max(1, Math.round(totalSeconds / 60));
+  if (minutes < 60) return `${toFaDigits(minutes)} دقیقه`;
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest === 0 ? `${hours} ساعت` : `${hours} ساعت و ${rest} دقیقه`;
+  return rest === 0
+    ? `${toFaDigits(hours)} ساعت`
+    : `${toFaDigits(hours)} ساعت و ${toFaDigits(rest)} دقیقه`;
 }
 
 const persianDate = new Intl.DateTimeFormat("fa-IR", {

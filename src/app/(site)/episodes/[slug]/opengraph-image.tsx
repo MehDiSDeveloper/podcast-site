@@ -1,5 +1,5 @@
 import { OG_CONTENT_TYPE, OG_SIZE, renderOgImage } from "@/lib/og";
-import { formatDurationLabel } from "@/lib/utils";
+import { formatDurationLabel, toFaDigits } from "@/lib/utils";
 import { getEpisodeBySlug } from "@/server/episodes";
 import { siteConfig } from "@/config/site";
 
@@ -17,7 +17,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
   return renderOgImage({
     title: episode.title,
-    eyebrow: episode.episodeNumber ? `اپیزود ${episode.episodeNumber}` : "اپیزود",
+    eyebrow: episode.episodeNumber ? `اپیزود ${toFaDigits(episode.episodeNumber)}` : "اپیزود",
     meta: formatDurationLabel(episode.durationSeconds),
   });
 }

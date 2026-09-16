@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { PLAYBACK_RATES, usePlayer } from "@/components/player/player-provider";
-import { cn, formatDuration } from "@/lib/utils";
+import { cn, formatClock, toFaDigits } from "@/lib/utils";
 
 export function PlayerBar() {
   const player = usePlayer();
@@ -61,7 +61,7 @@ export function PlayerBar() {
             setScrubbing(null);
           }}
           aria-label="جابه‌جایی در اپیزود"
-          aria-valuetext={`${formatDuration(displayTime)} از ${formatDuration(duration)}`}
+          aria-valuetext={`${formatClock(displayTime)} از ${formatClock(duration)}`}
           className="player-scrub absolute inset-0 w-full cursor-pointer"
         />
       </div>
@@ -90,17 +90,16 @@ export function PlayerBar() {
             >
               {player.track.title}
             </Link>
-            <p className="nums mt-0.5 text-xs text-ink-subtle">
-              {player.error ? (
-                <span className="text-danger" dir="rtl">
-                  {player.error}
+            {player.error ? (
+              <p className="mt-0.5 text-xs text-danger">{player.error}</p>
+            ) : (
+              // A clock reads left-to-right even in Persian, hence the isolated LTR run.
+              <p className="nums mt-0.5 text-xs text-ink-subtle" dir="ltr">
+                <span className="inline-block text-right">
+                  {formatClock(displayTime)} / {formatClock(duration)}
                 </span>
-              ) : (
-                <>
-                  {formatDuration(displayTime)} / {formatDuration(duration)}
-                </>
-              )}
-            </p>
+              </p>
+            )}
           </div>
         </div>
 
@@ -153,11 +152,11 @@ export function PlayerBar() {
               const index = PLAYBACK_RATES.indexOf(player.playbackRate as (typeof PLAYBACK_RATES)[number]);
               player.setPlaybackRate(PLAYBACK_RATES[(index + 1) % PLAYBACK_RATES.length]);
             }}
-            aria-label={`سرعت پخش: ${player.playbackRate} برابر. برای تغییر کلیک کنید.`}
+            aria-label={`سرعت پخش: ${toFaDigits(player.playbackRate)} برابر. برای تغییر کلیک کنید.`}
             title="سرعت پخش"
             className="nums hidden h-9 min-w-12 items-center justify-center rounded-lg px-2 text-sm font-bold text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink lg:flex"
           >
-            {player.playbackRate}×
+            {toFaDigits(player.playbackRate)}×
           </button>
 
           <div className="hidden items-center gap-2 lg:flex">

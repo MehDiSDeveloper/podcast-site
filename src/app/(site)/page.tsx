@@ -17,7 +17,7 @@ import {
   professionalServiceSchema,
   websiteSchema,
 } from "@/lib/structured-data";
-import { formatDate, formatDurationLabel, toISODate } from "@/lib/utils";
+import { formatDate, formatDurationLabel, toFaDigits, toISODate } from "@/lib/utils";
 import { getFeaturedEpisode, getLatestEpisodes, toPlayerTrack } from "@/server/episodes";
 import { getTopics } from "@/server/topics";
 
@@ -53,16 +53,17 @@ export default async function HomePage() {
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(60rem_35rem_at_85%_-10%,var(--brand-soft),transparent_65%)]"
         />
 
-        <div className="container-page relative grid gap-14 py-16 md:py-24 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+        <div className="container-page relative grid gap-12 py-16 md:py-24 lg:grid-cols-[1.45fr_1fr] lg:items-center xl:gap-16">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-semibold text-brand-strong">
               <span className="size-2 rounded-full bg-accent" aria-hidden="true" />
               پادکست {siteConfig.name}
             </p>
 
-            <h1 className="mt-6 text-4xl leading-tight md:text-6xl">
-              مسئله‌های آدم‌ها در کار،
-              <br />
+            <h1 className="mt-6 text-[2.25rem] leading-[1.4] sm:text-5xl lg:text-[2.625rem] xl:text-5xl">
+              مسئله‌های آدم‌ها در کار،{" "}
+              {/* The line break only helps once there is room for each clause. */}
+              <br className="hidden sm:block" />
               از <span className="text-brand-strong">زاویه‌ای</span> که کمتر دیده می‌شود.
             </h1>
 
@@ -72,7 +73,7 @@ export default async function HomePage() {
               می‌کند و با چیزی قابل‌اجرا تمام می‌شود.
             </p>
 
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Link href="/episodes" className={buttonStyles({ size: "lg" })}>
                 شنیدن اپیزودها
                 <ArrowLeft className="size-4" aria-hidden="true" />
@@ -95,8 +96,8 @@ export default async function HomePage() {
           {/* Featured episode */}
           {featured ? (
             <div className="rounded-3xl border border-line bg-surface p-7 shadow-card md:p-8">
-              <p className="text-sm font-bold text-accent-contrast">
-                <span className="rounded-full bg-accent-soft px-3 py-1">اپیزود پیشنهادی</span>
+              <p className="text-sm font-bold">
+                <span className="rounded-full bg-accent-soft px-3 py-1 text-accent-ink">اپیزود پیشنهادی</span>
               </p>
 
               <h2 className="mt-5 text-2xl leading-snug">
@@ -146,7 +147,7 @@ export default async function HomePage() {
             {problemAreas.map((area, index) => (
               <li key={area.title} className="rounded-2xl border border-line bg-canvas p-7">
                 <span className="nums grid size-9 place-items-center rounded-lg bg-brand-soft text-sm font-bold text-brand-strong">
-                  {index + 1}
+                  {toFaDigits(index + 1)}
                 </span>
                 <h3 className="mt-5 text-lg font-bold">{area.title}</h3>
                 <p className="mt-3 leading-loose text-ink-muted">{area.body}</p>
@@ -213,7 +214,7 @@ export default async function HomePage() {
                         {topic.name}
                       </h3>
                       <span className="nums shrink-0 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold text-ink-subtle">
-                        {topic.episodeCount}
+                        {toFaDigits(topic.episodeCount)}
                       </span>
                     </div>
                     {topic.description ? (

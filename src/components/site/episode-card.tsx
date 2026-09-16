@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { PlayButton } from "@/components/player/play-button";
 import { toPlayerTrack, type EpisodeListItem } from "@/server/episodes";
-import { cn, formatDate, formatDurationLabel, toISODate } from "@/lib/utils";
+import { cn, formatDate, formatDurationLabel, toFaDigits, toISODate } from "@/lib/utils";
 
 /**
  * One episode, in card or row form.
@@ -27,7 +27,7 @@ export function EpisodeCard({
   const meta = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-ink-subtle">
       {episode.episodeNumber ? (
-        <span className="nums font-semibold text-brand-strong">اپیزود {episode.episodeNumber}</span>
+        <span className="nums font-semibold text-brand-strong">اپیزود {toFaDigits(episode.episodeNumber)}</span>
       ) : null}
       {episode.publishedAt ? (
         <time dateTime={toISODate(episode.publishedAt)}>{formatDate(episode.publishedAt)}</time>
