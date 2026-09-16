@@ -52,6 +52,22 @@ model Session {
   @@map("sessions")
 }
 
+/// Failed and successful sign-in attempts, used to throttle password guessing.
+/// Stored in the database rather than memory so the limit survives restarts
+/// and holds across multiple server instances.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  /// Lower-cased username that was tried, whether or not it exists.
+  username  String
+  ipHash    String
+  succeeded Boolean
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+  @@index([username, createdAt])
+  @@map("login_attempts")
+}
+
 // ------------------------------------------------------------- podcast
 
 /// The podcast series itself. Modelled as a row rather than a constant so the

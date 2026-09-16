@@ -12,7 +12,8 @@ import { hashPassword, verifyPassword } from "./password";
 const DEFAULT_SHOW_SLUG = "main";
 
 async function ensureAdminUser(): Promise<void> {
-  const username = process.env.ADMIN_USERNAME?.trim();
+  // Usernames are matched case-insensitively at sign-in, so store them lower-cased.
+  const username = process.env.ADMIN_USERNAME?.trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
 
   if (!username || !password) {
