@@ -25,14 +25,11 @@ const episodeTones = {
 } as const;
 
 /**
- * A PUBLISHED episode dated in the future is not live yet, so it is shown as
- * scheduled — the badge reflects what visitors actually see.
+ * `isFuture` comes from the data layer: a PUBLISHED episode dated in the future
+ * is not live yet, so the badge shows it as scheduled — what visitors see.
  */
-export function EpisodeStatusBadge({ status, publishedAt }: { status: string; publishedAt: Date | null }) {
-  const effective: EpisodeStatus =
-    status === "PUBLISHED" && publishedAt && publishedAt.getTime() > Date.now()
-      ? "SCHEDULED"
-      : (status as EpisodeStatus);
+export function EpisodeStatusBadge({ status, isFuture }: { status: string; isFuture: boolean }) {
+  const effective: EpisodeStatus = status === "PUBLISHED" && isFuture ? "SCHEDULED" : (status as EpisodeStatus);
 
   return (
     <Badge tone={episodeTones[effective] ?? "neutral"}>{EPISODE_STATUS_LABELS[effective] ?? status}</Badge>

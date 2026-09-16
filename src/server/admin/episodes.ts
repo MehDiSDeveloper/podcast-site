@@ -9,7 +9,8 @@ import { db } from "../db";
 /** Admin-side episode data access. Unlike src/server/episodes.ts, sees drafts. */
 
 export async function listAdminEpisodes({ status }: { status?: EpisodeStatus } = {}) {
-  return db.episode.findMany({
+  const now = Date.now();
+  const episodes = await db.episode.findMany({
     where: status ? { status } : undefined,
     orderBy: [{ publishedAt: { sort: "desc", nulls: "first" } }, { createdAt: "desc" }],
     select: {
@@ -24,6 +25,10 @@ export async function listAdminEpisodes({ status }: { status?: EpisodeStatus } =
       durationSeconds: true,
     },
   });
+  return episodes.map((episode) => ({
+    ...episode,
+    isFuture: Boolean(episode.publishedAt && episode.publishedAt.getTime() > now),
+  }));
 }
 
 export async function getAdminEpisode(id: string) {

@@ -2,7 +2,7 @@
 
 import { Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { PLAYBACK_RATES, usePlayer } from "@/components/player/player-provider";
 import { cn, formatClock, toFaDigits } from "@/lib/utils";
@@ -10,10 +10,6 @@ import { cn, formatClock, toFaDigits } from "@/lib/utils";
 export function PlayerBar() {
   const player = usePlayer();
   const [scrubbing, setScrubbing] = useState<number | null>(null);
-
-  // Mounting state keeps the entry animation from firing during hydration.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   if (!player.track) return null;
 
@@ -26,8 +22,8 @@ export function PlayerBar() {
     <div
       className={cn(
         "player-bar-active fixed inset-x-0 bottom-0 z-50 border-t border-line bg-canvas/92 shadow-player backdrop-blur-xl",
-        "transition-transform duration-500 ease-[var(--ease-out-soft)]",
-        mounted ? "translate-y-0" : "translate-y-full",
+        // The bar only mounts once a track is chosen, so a CSS entry animation is enough.
+        "animate-[player-in_500ms_var(--ease-out-soft)]",
       )}
       role="region"
       aria-label="پخش‌کننده‌ی پادکست"

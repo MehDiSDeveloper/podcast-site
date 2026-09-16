@@ -77,6 +77,7 @@ function countPlay(trackId: string) {
 
 function readPrefs(): { volume: number; playbackRate: number; isMuted: boolean } {
   const fallback = { volume: 1, playbackRate: 1, isMuted: false };
+  if (typeof window === "undefined") return fallback;
   try {
     const raw = localStorage.getItem(PREFS_KEY);
     if (!raw) return fallback;
@@ -88,34 +89,34 @@ function readPrefs(): { volume: number; playbackRate: number; isMuted: boolean }
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [state, setState] = useState<PlayerState>({
+  // Saved preferences are read up front. Nothing rendered during hydration
+  // depends on them (the bar only appears once a track is chosen), so reading
+  // storage in the initialiser cannot cause a mismatch.
+  const [state, setState] = useState<PlayerState>(() => ({
     track: null,
     isPlaying: false,
     isLoading: false,
     currentTime: 0,
     duration: 0,
     bufferedTo: 0,
-    volume: 1,
-    isMuted: false,
-    playbackRate: 1,
     error: null,
-  });
+    ...readPrefs(),
+  }));
 
   const patch = useCallback((next: Partial<PlayerState>) => {
     setState((current) => ({ ...current, ...next }));
   }, []);
 
-  // Restore volume/rate preferences once, after mount.
+  // Keep the element in sync with preferences. defaultPlaybackRate matters:
+  // audio.load() on every new track resets playbackRate to it.
   useEffect(() => {
-    const prefs = readPrefs();
-    patch(prefs);
     const audio = audioRef.current;
-    if (audio) {
-      audio.volume = prefs.volume;
-      audio.muted = prefs.isMuted;
-      audio.playbackRate = prefs.playbackRate;
-    }
-  }, [patch]);
+    if (!audio) return;
+    audio.volume = state.volume;
+    audio.muted = state.isMuted;
+    audio.defaultPlaybackRate = state.playbackRate;
+    audio.playbackRate = state.playbackRate;
+  }, [state.volume, state.isMuted, state.playbackRate, state.track]);
 
   const persistPosition = useCallback(() => {
     const audio = audioRef.current;

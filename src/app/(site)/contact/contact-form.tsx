@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Send } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
@@ -19,16 +19,23 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
 
   const formRef = useRef<HTMLFormElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
-  const [meta, setMeta] = useState({ startedAt: "", sourcePath: "", referrer: "" });
+  const startedAt = useRef(0);
 
-  // Captured after mount: these are only meaningful in the browser.
   useEffect(() => {
-    setMeta({
-      startedAt: String(Date.now()),
-      sourcePath: window.location.pathname + window.location.search,
-      referrer: document.referrer,
-    });
+    startedAt.current = Date.now();
   }, []);
+
+  // Browser-only context is written into the hidden fields just before the
+  // action reads the form, so no extra render is needed to hold it.
+  function fillMeta(form: HTMLFormElement) {
+    const set = (name: string, value: string) => {
+      const input = form.elements.namedItem(name);
+      if (input instanceof HTMLInputElement) input.value = value;
+    };
+    set("startedAt", String(startedAt.current));
+    set("sourcePath", window.location.pathname + window.location.search);
+    set("referrer", document.referrer);
+  }
 
   // After a failed submit, move focus to the first invalid field so keyboard and
   // screen-reader users land exactly where the problem is.
@@ -37,7 +44,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
       // Match controls only: the radiogroup wrapper also carries aria-invalid
       // but is a plain div, and focusing it would silently do nothing.
       const first = formRef.current?.querySelector<HTMLElement>(
-        'input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"]',
+        '[role="radiogroup"][aria-invalid="true"] input, input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"]',
       );
       first?.focus();
     }
@@ -74,7 +81,13 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
   const selectedType = (values.collaborationType as CollaborationType | undefined) ?? defaultType;
 
   return (
-    <form ref={formRef} action={formAction} noValidate className="flex flex-col gap-7">
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={(event) => fillMeta(event.currentTarget)}
+      noValidate
+      className="flex flex-col gap-7"
+    >
       {state.status === "error" ? (
         <div role="alert" className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3.5 text-sm font-medium text-danger">
           {state.message}
@@ -86,9 +99,9 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
         <label htmlFor="website">وب‌سایت</label>
         <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
-      <input type="hidden" name="startedAt" value={meta.startedAt} />
-      <input type="hidden" name="sourcePath" value={meta.sourcePath} />
-      <input type="hidden" name="referrer" value={meta.referrer} />
+      <input type="hidden" name="startedAt" defaultValue="" />
+      <input type="hidden" name="sourcePath" defaultValue="" />
+      <input type="hidden" name="referrer" defaultValue="" />
 
       {/* Collaboration type as cards: the options are the offer, so show them. */}
       <fieldset>
@@ -119,7 +132,6 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
                 name="collaborationType"
                 value={type}
                 defaultChecked={selectedType === type}
-                aria-invalid={errors.collaborationType ? true : undefined}
                 className="size-4 accent-[var(--brand)]"
               />
               {COLLABORATION_TYPE_LABELS[type]}

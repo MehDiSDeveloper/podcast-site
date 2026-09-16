@@ -43,13 +43,14 @@ export const CONTENT_TYPES: Record<string, string> = Object.fromEntries(
 
 export function uploadRoot(): string {
   const dir = process.env.UPLOAD_DIR || "storage/uploads";
-  return isAbsolute(dir) ? dir : resolve(process.cwd(), dir);
+  // Runtime-only paths: tell the bundler's file tracer not to follow them.
+  return isAbsolute(dir) ? dir : resolve(/*turbopackIgnore: true*/ process.cwd(), dir);
 }
 
 /** Resolves an /uploads path to disk, refusing anything that escapes the root. */
 export function resolveUploadPath(segments: string[]): string | null {
   const root = uploadRoot();
-  const target = resolve(root, ...segments);
+  const target = resolve(/*turbopackIgnore: true*/ root, ...segments);
   return target.startsWith(root + sep) ? target : null;
 }
 

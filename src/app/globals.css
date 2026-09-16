@@ -384,6 +384,15 @@
   background: var(--brand);
 }
 
+@keyframes player-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* Keeps the last section clear of the fixed player bar. */
 body:has(.player-bar-active) {
   padding-bottom: 5rem;

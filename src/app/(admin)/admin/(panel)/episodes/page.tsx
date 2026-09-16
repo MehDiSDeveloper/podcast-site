@@ -97,11 +97,11 @@ export default async function AdminEpisodesPage({ searchParams }: PageProps<"/ad
                     </Link>
                     <p className="mt-0.5 text-xs text-ink-subtle">{formatDurationLabel(episode.durationSeconds)}</p>
                     <div className="mt-1.5 md:hidden">
-                      <EpisodeStatusBadge status={episode.status} publishedAt={episode.publishedAt} />
+                      <EpisodeStatusBadge status={episode.status} isFuture={episode.isFuture} />
                     </div>
                   </td>
                   <td className="hidden px-3 py-3.5 md:table-cell">
-                    <EpisodeStatusBadge status={episode.status} publishedAt={episode.publishedAt} />
+                    <EpisodeStatusBadge status={episode.status} isFuture={episode.isFuture} />
                   </td>
                   <td className="hidden px-3 py-3.5 text-ink-muted lg:table-cell">
                     {episode.publishedAt ? formatDate(episode.publishedAt) : "—"}

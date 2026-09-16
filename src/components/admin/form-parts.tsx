@@ -1,10 +1,28 @@
 "use client";
 
 import { CheckCircle2, Trash2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { startTransition, useActionState, type FormEvent, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+/**
+ * useActionState with manual dispatch. Passing the action to <form action>
+ * makes React 19 reset every uncontrolled field once it settles — including
+ * after a validation error, which would wipe what the admin just typed.
+ */
+export function useFormAction<State>(
+  action: (state: Awaited<State>, formData: FormData) => State | Promise<State>,
+  initial: Awaited<State>,
+) {
+  const [state, dispatch, pending] = useActionState<State, FormData>(action, initial);
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => dispatch(formData));
+  };
+  return { state, pending, onSubmit };
+}
 
 /** A titled card that groups related fields in admin forms. */
 export function FormSection({

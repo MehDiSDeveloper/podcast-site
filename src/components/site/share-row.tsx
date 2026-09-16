@@ -3,6 +3,7 @@
 import { Check, Link2, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useClientValue } from "@/lib/use-client-value";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,9 +20,7 @@ export function ShareRow({
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
-  const [canShare, setCanShare] = useState(false);
-
-  useEffect(() => setCanShare(typeof navigator !== "undefined" && "share" in navigator), []);
+  const canShare = useClientValue(() => "share" in navigator, false);
 
   useEffect(() => {
     if (!copied) return;

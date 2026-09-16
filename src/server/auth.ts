@@ -132,6 +132,15 @@ export async function destroySession(): Promise<void> {
   store.delete(SESSION_COOKIE);
 }
 
+/** Signs out every other device, keeping the session making the request. */
+export async function revokeOtherSessions(userId: string): Promise<void> {
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  await db.session.deleteMany({
+    where: { userId, ...(token ? { tokenHash: { not: hashToken(token) } } : {}) },
+  });
+}
+
 // ------------------------------------------------------------------ sign-in
 
 export type SignInResult =

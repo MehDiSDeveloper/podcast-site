@@ -15,8 +15,13 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Close the mobile sheet on navigation, otherwise it stays open over the new page.
-  useEffect(() => setOpen(false), [pathname]);
+  // Close the mobile sheet on navigation, otherwise it stays open over the new
+  // page. Adjusting state during render avoids an extra effect-driven pass.
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setOpen(false);
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);

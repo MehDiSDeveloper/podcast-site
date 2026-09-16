@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -20,10 +21,9 @@ export default function SiteError({ error, reset }: { error: Error & { digest?: 
         <Button size="lg" onClick={reset}>
           تلاش دوباره
         </Button>
-        {/* A plain anchor forces a full reload, which recovers from a broken client state. */}
-        <a href="/" className={buttonStyles({ variant: "outline", size: "lg" })}>
+        <Link href="/" className={buttonStyles({ variant: "outline", size: "lg" })}>
           بازگشت به خانه
-        </a>
+        </Link>
       </div>
     </div>
   );

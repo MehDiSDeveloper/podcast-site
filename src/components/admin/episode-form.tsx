@@ -1,11 +1,10 @@
 "use client";
 
 import { Link2, Loader2, Upload, X } from "lucide-react";
-import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import type { EpisodeFormState } from "@/app/(admin)/admin/(panel)/episodes/actions";
-import { saveEpisodeAction } from "@/app/(admin)/admin/(panel)/episodes/actions";
-import { Checkbox, FormSection, FormStatus, SubmitButton } from "@/components/admin/form-parts";
+import { saveEpisodeAction, type EpisodeFormState } from "@/app/(admin)/admin/(panel)/episodes/actions";
+import { Checkbox, FormSection, FormStatus, SubmitButton, useFormAction } from "@/components/admin/form-parts";
 import { detectAudioDuration, formatBytes, parseDuration, uploadFile } from "@/components/admin/media";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import {
@@ -15,6 +14,7 @@ import {
   EPISODE_TYPES,
 } from "@/lib/enums";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { useClientValue } from "@/lib/use-client-value";
 import { cn, formatDuration, slugify } from "@/lib/utils";
 
 export type EpisodeFormValues = {
@@ -49,9 +49,7 @@ export function EpisodeForm({
   initial: EpisodeFormValues;
   topics: { id: string; name: string }[];
 }) {
-  const [state, formAction, pending] = useActionState<EpisodeFormState, FormData>(saveEpisodeAction, {
-    status: "idle",
-  });
+  const { state, pending, onSubmit } = useFormAction<EpisodeFormState>(saveEpisodeAction, { status: "idle" });
   const errors = state.status === "error" ? (state.fieldErrors ?? {}) : {};
   const [title, setTitle] = useState(initial.title);
   const [slug, setSlug] = useState(initial.slug);
@@ -59,15 +57,15 @@ export function EpisodeForm({
   const [previewNotes, setPreviewNotes] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // datetime-local has no timezone; convert in the browser so the server stores
-  // the instant the admin actually meant.
-  const [publishedLocal, setPublishedLocal] = useState("");
-  useEffect(() => {
-    if (!initial.publishedAt) return;
+  // datetime-local has no timezone, so the value is derived in the browser's
+  // own zone. The input is rendered only on the client, which keeps the
+  // server's (possibly different) timezone out of the hydrated markup.
+  const isClient = useClientValue(() => true, false);
+  const [publishedLocal, setPublishedLocal] = useState(() => {
+    if (!initial.publishedAt) return "";
     const date = new Date(initial.publishedAt);
-    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    setPublishedLocal(local);
-  }, [initial.publishedAt]);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  });
 
   const statusRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -75,17 +73,7 @@ export function EpisodeForm({
   }, [state]);
 
   return (
-    <form
-      noValidate
-      // Dispatching manually (instead of <form action>) stops React 19 from
-      // resetting every field after a failed validation round-trip.
-      onSubmit={(event) => {
-        event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        startTransition(() => formAction(formData));
-      }}
-      className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]"
-    >
+    <form noValidate onSubmit={onSubmit} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
       {initial.id ? <input type="hidden" name="id" value={initial.id} /> : null}
 
       <div className="flex min-w-0 flex-col gap-6">
@@ -222,20 +210,30 @@ export function EpisodeForm({
             hint="برای انتشار فوری خالی بگذارید. تاریخ آینده یعنی زمان‌بندی."
             error={errors.publishedAt}
           >
-            {(props) => (
-              <Input
-                {...props}
-                type="datetime-local"
-                dir="ltr"
-                value={publishedLocal}
-                onChange={(event) => setPublishedLocal(event.target.value)}
-              />
-            )}
+            {(props) =>
+              isClient ? (
+                <Input
+                  {...props}
+                  type="datetime-local"
+                  dir="ltr"
+                  value={publishedLocal}
+                  onChange={(event) => setPublishedLocal(event.target.value)}
+                />
+              ) : (
+                <Input {...props} type="datetime-local" dir="ltr" disabled />
+              )
+            }
           </Field>
           <input
             type="hidden"
             name="publishedAt"
-            value={publishedLocal ? new Date(publishedLocal).toISOString() : ""}
+            value={
+              isClient
+                ? publishedLocal
+                  ? new Date(publishedLocal).toISOString()
+                  : ""
+                : (initial.publishedAt ?? "")
+            }
           />
 
           <Checkbox name="featured" label="اپیزود پیشنهادی" hint="در بخش اصلی صفحه‌ی خانه نمایش داده می‌شود." defaultChecked={initial.featured} />
