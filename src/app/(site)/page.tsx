@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, Rss } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,28 +8,40 @@ import { EpisodeCard } from "@/components/site/episode-card";
 import { SectionHeading } from "@/components/site/page-header";
 import { SubscribeStrip } from "@/components/site/subscribe-strip";
 import { buttonStyles } from "@/components/ui/button";
-import { disciplines, problemAreas, services } from "@/config/services";
+import { disciplines, problemAreas } from "@/config/services";
 import { siteConfig } from "@/config/site";
 import {
   graph,
   personSchema,
   podcastSeriesSchema,
-  professionalServiceSchema,
   websiteSchema,
 } from "@/lib/structured-data";
 import { formatDate, formatDurationLabel, toFaDigits, toISODate } from "@/lib/utils";
 import { getFeaturedEpisode, getLatestEpisodes, toPlayerTrack } from "@/server/episodes";
-import { getTopics } from "@/server/topics";
+import { getCategories } from "@/server/taxonomy";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+/**
+ * Rendered per request rather than at build time.
+ *
+ * The production image is built without the production database — it lives on a
+ * mounted disk and only exists at run time — so anything prerendered here would
+ * be a snapshot of an empty database. The queries behind this page are a handful
+ * of indexed SQLite reads on local disk, so serving it fresh costs nothing worth
+ * caching. Detail pages (episode, category, tag) keep their static generation:
+ * with no rows at build time generateStaticParams yields nothing, and each page
+ * is generated on first request and then revalidated by the admin panel.
+ */
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
-  const [featured, latest, topics] = await Promise.all([
+  const [featured, latest, categories] = await Promise.all([
     getFeaturedEpisode(),
     getLatestEpisodes(7),
-    getTopics(),
+    getCategories(),
   ]);
 
   // Keep the hero episode out of the grid below it.
@@ -38,25 +50,15 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd
-        data={graph(
-          personSchema(),
-          websiteSchema(),
-          podcastSeriesSchema(),
-          professionalServiceSchema(services.map((s) => ({ name: s.title, description: s.summary }))),
-        )}
+        data={graph(personSchema(), websiteSchema(), podcastSeriesSchema())}
       />
 
       {/* ---------------------------------------------------------------- hero */}
-      <section className="relative overflow-hidden border-b border-line">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(60rem_35rem_at_85%_-10%,var(--brand-soft),transparent_65%)]"
-        />
-
-        <div className="container-page relative grid gap-12 py-16 md:py-24 lg:grid-cols-[1.45fr_1fr] lg:items-center xl:gap-16">
+      <section className="relative border-b border-line">
+        <div className="container-page relative grid gap-12 py-16 md:py-28 lg:grid-cols-[1.45fr_1fr] lg:items-center xl:gap-16">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-semibold text-brand-strong">
-              <span className="size-2 rounded-full bg-accent" aria-hidden="true" />
+            <p className="glass inline-flex items-center gap-2.5 rounded-full px-3.5 py-1.5 text-sm font-semibold text-brand-strong">
+              <span className="on-air size-2 rounded-full bg-accent" aria-hidden="true" />
               پادکست {siteConfig.name}
             </p>
 
@@ -64,7 +66,7 @@ export default async function HomePage() {
               مسئله‌های آدم‌ها در کار،{" "}
               {/* The line break only helps once there is room for each clause. */}
               <br className="hidden sm:block" />
-              از <span className="text-brand-strong">زاویه‌ای</span> که کمتر دیده می‌شود.
+              از <span className="text-aurora">زاویه‌ای</span> که کمتر دیده می‌شود.
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-loose text-ink-muted">
@@ -78,9 +80,10 @@ export default async function HomePage() {
                 شنیدن اپیزودها
                 <ArrowLeft className="size-4" aria-hidden="true" />
               </Link>
-              <Link href="/collaborate" className={buttonStyles({ variant: "outline", size: "lg" })}>
-                همکاری با تیم شما
-              </Link>
+              <a href="#subscribe" className={buttonStyles({ variant: "outline", size: "lg" })}>
+                <Rss className="size-4" aria-hidden="true" />
+                دنبال‌کردن پادکست
+              </a>
             </div>
 
             <ul className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-subtle">
@@ -95,7 +98,10 @@ export default async function HomePage() {
 
           {/* Featured episode */}
           {featured ? (
-            <div className="rounded-3xl border border-line bg-surface p-7 shadow-card md:p-8">
+            <div className="relative isolate">
+              <span className="orbit-glow" aria-hidden="true" />
+            <div className="glass relative rounded-3xl p-7 md:p-8">
+              <span className="orbit-ring" aria-hidden="true" />
               <p className="text-sm font-bold">
                 <span className="rounded-full bg-accent-soft px-3 py-1 text-accent-ink">اپیزود پیشنهادی</span>
               </p>
@@ -128,32 +134,8 @@ export default async function HomePage() {
                 </Link>
               </div>
             </div>
+            </div>
           ) : null}
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------- problem areas */}
-      <section aria-labelledby="problems-heading" className="border-b border-line bg-surface">
-        <div className="container-page py-16 md:py-24">
-          <SectionHeading
-            title="این پادکست سراغ چه چیزی می‌رود؟"
-            description="سه دسته مسئله که در هر سازمانی تکرار می‌شوند و کمتر ریشه‌ای به آن‌ها پرداخته می‌شود."
-          />
-          <h2 id="problems-heading" className="sr-only">
-            موضوع‌های اصلی
-          </h2>
-
-          <ul className="mt-10 grid gap-6 md:grid-cols-3">
-            {problemAreas.map((area, index) => (
-              <li key={area.title} className="rounded-2xl border border-line bg-canvas p-7">
-                <span className="nums grid size-9 place-items-center rounded-lg bg-brand-soft text-sm font-bold text-brand-strong">
-                  {toFaDigits(index + 1)}
-                </span>
-                <h3 className="mt-5 text-lg font-bold">{area.title}</h3>
-                <p className="mt-3 leading-loose text-ink-muted">{area.body}</p>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
@@ -181,7 +163,7 @@ export default async function HomePage() {
 
             <ul className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {recent.map((episode) => (
-                <li key={episode.id} className="flex">
+                <li key={episode.id} className="reveal flex">
                   <EpisodeCard episode={episode} className="w-full" />
                 </li>
               ))}
@@ -190,35 +172,60 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {/* ------------------------------------------------------------- topics */}
-      {topics.length > 0 ? (
-        <section aria-labelledby="topics-heading" className="border-b border-line bg-surface">
+      {/* ------------------------------------------------------- problem areas */}
+      <section aria-labelledby="problems-heading" className="border-b border-line">
+        <div className="container-page py-16 md:py-24">
+          <SectionHeading
+            title="این پادکست سراغ چه چیزی می‌رود؟"
+            description="سه دسته مسئله که در هر سازمانی تکرار می‌شوند و کمتر ریشه‌ای به آن‌ها پرداخته می‌شود."
+          />
+          <h2 id="problems-heading" className="sr-only">
+            مسئله‌های اصلی
+          </h2>
+
+          <ul className="mt-10 grid gap-6 md:grid-cols-3">
+            {problemAreas.map((area, index) => (
+              <li key={area.title} className="reveal glass spotlight rounded-2xl p-7">
+                <span className="nums chip-tint grid size-10 place-items-center rounded-xl text-sm font-bold">
+                  {toFaDigits(index + 1)}
+                </span>
+                <h3 className="mt-5 text-lg font-bold">{area.title}</h3>
+                <p className="mt-3 leading-loose text-ink-muted">{area.body}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* --------------------------------------------------------- categories */}
+      {categories.length > 0 ? (
+        <section aria-labelledby="categories-heading" className="border-b border-line">
           <div className="container-page py-16 md:py-24">
             <SectionHeading
-              title="بر اساس موضوع بگردید"
-              description="هر موضوع، مجموعه‌ای از اپیزودهایی است که یک مسئله را از زوایای مختلف باز می‌کنند."
+              title="بر اساس دسته بگردید"
+              description="هر دسته، مجموعه‌ای از اپیزودهایی است که یک مواجهه را از زوایای مختلف باز می‌کنند."
             />
-            <h2 id="topics-heading" className="sr-only">
-              موضوع‌ها
+            <h2 id="categories-heading" className="sr-only">
+              دسته‌ها
             </h2>
 
             <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topics.map((topic) => (
-                <li key={topic.id}>
+              {categories.map((category) => (
+                <li key={category.id} className="reveal">
                   <Link
-                    href={`/topics/${topic.slug}`}
-                    className="group flex h-full flex-col rounded-2xl border border-line bg-canvas p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand hover:shadow-card"
+                    href={`/categories/${category.slug}`}
+                    className="glass spotlight group flex h-full flex-col rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="text-lg font-bold transition-colors group-hover:text-brand-strong">
-                        {topic.name}
+                        {category.name}
                       </h3>
-                      <span className="nums shrink-0 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold text-ink-subtle">
-                        {toFaDigits(topic.episodeCount)}
+                      <span className="nums chip-tint shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold">
+                        {toFaDigits(category.episodeCount)}
                       </span>
                     </div>
-                    {topic.description ? (
-                      <p className="mt-2.5 text-sm leading-loose text-ink-muted">{topic.description}</p>
+                    {category.description ? (
+                      <p className="mt-2.5 text-sm leading-loose text-ink-muted">{category.description}</p>
                     ) : null}
                   </Link>
                 </li>
@@ -228,44 +235,10 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {/* ---------------------------------------------------------- work with me */}
-      <section aria-labelledby="work-heading" className="border-b border-line">
-        <div className="container-page grid gap-12 py-16 md:py-24 lg:grid-cols-[1fr_1.1fr]">
-          <div className="lg:sticky lg:top-24 lg:self-start">
-            <p className="text-sm font-bold text-brand-strong">برای سازمان‌ها</p>
-            <h2 id="work-heading" className="mt-3 text-3xl leading-tight md:text-4xl">
-              همین کار را با تیم شما هم انجام می‌دهم
-            </h2>
-            <p className="mt-5 leading-loose text-ink-muted">
-              آنچه در پادکست می‌شنوید، خلاصه‌ی کاری است که در کوچینگ، کارگاه و مشاوره با تیم‌ها انجام
-              می‌دهم: رسیدن به مسئله‌ی واقعی و ساختن مسیری که قابل اجرا باشد.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/contact" className={buttonStyles({ size: "lg" })}>
-                دعوت به همکاری
-              </Link>
-              <Link href="/collaborate" className={buttonStyles({ variant: "outline", size: "lg" })}>
-                جزئیات خدمات
-              </Link>
-            </div>
-          </div>
-
-          <ul className="grid gap-4 sm:grid-cols-2">
-            {services.slice(0, 4).map((service) => (
-              <li key={service.type} className="rounded-2xl border border-line bg-surface p-6">
-                <h3 className="text-lg font-bold">{service.title}</h3>
-                <p className="mt-2.5 text-sm leading-loose text-ink-muted">{service.summary}</p>
-                <p className="mt-4 text-xs font-medium text-ink-subtle">{service.audience}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
       {/* ---------------------------------------------------------- subscribe */}
-      <section className="bg-surface">
-        <div className="container-page py-16 md:py-20">
-          <SubscribeStrip className="mx-auto max-w-2xl bg-canvas text-center" />
+      <section id="subscribe" className="scroll-mt-24">
+        <div className="container-page py-16 md:py-24">
+          <SubscribeStrip className="reveal mx-auto max-w-2xl p-8 text-center md:p-10" />
         </div>
       </section>
     </>

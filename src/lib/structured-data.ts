@@ -79,7 +79,8 @@ export function podcastEpisodeSchema(episode: {
   episodeNumber?: number | null;
   seasonNumber?: number | null;
   transcript?: string | null;
-  topics?: { name: string }[];
+  /** Category, lens and tag names, emitted as keywords. */
+  keywords?: string[];
 }) {
   const url = absolute(`/episodes/${episode.slug}`);
 
@@ -94,7 +95,7 @@ export function podcastEpisodeSchema(episode: {
     ...(episode.episodeNumber ? { episodeNumber: episode.episodeNumber } : {}),
     ...(episode.seasonNumber ? { seasonNumber: episode.seasonNumber } : {}),
     ...(episode.coverImage ? { image: absolute(episode.coverImage) } : { image: absolute(siteConfig.podcast.artwork) }),
-    ...(episode.topics?.length ? { keywords: episode.topics.map((topic) => topic.name).join("، ") } : {}),
+    ...(episode.keywords?.length ? { keywords: episode.keywords.join("، ") } : {}),
     ...(episode.transcript ? { transcript: episode.transcript } : {}),
     timeRequired: isoDuration(episode.durationSeconds),
     partOfSeries: { "@id": SERIES_ID },
@@ -170,17 +171,6 @@ export function professionalServiceSchema(services: { name: string; description:
         itemOffered: { "@type": "Service", name: service.name, description: service.description },
       })),
     },
-  };
-}
-
-export function faqSchema(items: { question: string; answer: string }[]) {
-  return {
-    "@type": "FAQPage",
-    mainEntity: items.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: { "@type": "Answer", text: item.answer },
-    })),
   };
 }
 

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { EPISODE_STATUSES, EPISODE_TYPES } from "@/lib/enums";
+import { normalizeFa } from "@/lib/utils";
 
 /** Empty form strings become undefined so optional columns are stored as null. */
 const optionalText = (max: number) =>
@@ -59,7 +60,18 @@ export const episodeSchema = z
 
     featured: z.string().optional().transform((value) => value === "on"),
     explicit: z.string().optional().transform((value) => value === "on"),
-    topicIds: z.array(z.string()).default([]),
+    categoryId: z
+      .string()
+      .optional()
+      .transform((value) => value || undefined),
+    lensIds: z.array(z.string()).default([]),
+    /** Tag names, not ids: unknown names become new tags on save. */
+    tags: z
+      .array(z.string().transform(normalizeFa))
+      .default([])
+      .transform((names) => [...new Set(names.filter(Boolean))])
+      .refine((names) => names.every((name) => name.length <= 60), { message: "هر برچسب حداکثر ۶۰ نویسه باشد." })
+      .refine((names) => names.length <= 20, { message: "حداکثر ۲۰ برچسب مجاز است." }),
 
     seoTitle: optionalText(120),
     seoDescription: optionalText(300),
@@ -68,6 +80,9 @@ export const episodeSchema = z
     // .catch(0) above keeps the type numeric; report the real problem here.
     if (data.durationSeconds < 1) {
       ctx.addIssue({ code: "custom", path: ["durationSeconds"], message: "مدت اپیزود را وارد کنید." });
+    }
+    if (data.status !== "DRAFT" && !data.categoryId) {
+      ctx.addIssue({ code: "custom", path: ["categoryId"], message: "برای انتشار، دسته را انتخاب کنید." });
     }
     if (data.status === "SCHEDULED" && !data.publishedAt) {
       ctx.addIssue({ code: "custom", path: ["publishedAt"], message: "برای زمان‌بندی، تاریخ انتشار لازم است." });

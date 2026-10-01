@@ -1,0 +1,24 @@
+{
+  "platform": "docker",
+  "port": 3000,
+  "build": {
+    "location": "germany",
+    "args": ["NEXT_PUBLIC_SITE_URL=https://zavieh.liara.run"]
+  },
+  "disks": [
+    {
+      "name": "data",
+      "mountTo": "/app/data"
+    }
+  ],
+  "docker": {
+    "timezone": "Asia/Tehran"
+  },
+  "healthCheck": {
+    "command": "CMD curl --fail http://localhost:3000/robots.txt || exit 1",
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3,
+    "startPeriod": 20
+  }
+}

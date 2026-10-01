@@ -12,8 +12,59 @@ import type { InquiryFormState } from "@/lib/validation/inquiry";
 
 import { submitInquiry } from "./actions";
 
+/** Fields kept in the draft; hidden meta fields and the honeypot are left out. */
+const DRAFT_FIELDS = [
+  "name",
+  "email",
+  "phone",
+  "company",
+  "roleTitle",
+  "collaborationType",
+  "teamSize",
+  "timeline",
+  "message",
+  "consent",
+] as const;
+
+// sessionStorage: survives a reload or the error page, but not closing the tab.
+const DRAFT_KEY = "contact-draft";
+
+function readDraft(): Record<string, string> | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, string>) : null;
+  } catch {
+    return null;
+  }
+}
+
+function formValues(form: HTMLFormElement | FormData): Record<string, string> {
+  const data = form instanceof FormData ? form : new FormData(form);
+  return Object.fromEntries(DRAFT_FIELDS.map((field) => [field, String(data.get(field) ?? "")]));
+}
+
+/**
+ * A request that never gets an answer (server restarting, network drop, a page
+ * left open across a deploy) makes the action throw. Uncaught, that replaces
+ * the whole page with the error boundary and loses everything typed, so turn
+ * it into a normal form error instead.
+ */
+async function submitSafely(previous: InquiryFormState, formData: FormData): Promise<InquiryFormState> {
+  try {
+    return await submitInquiry(previous, formData);
+  } catch (error) {
+    console.error("[contact] submit failed:", error);
+    return {
+      status: "error",
+      message:
+        "ارتباط با سرور برقرار نشد و پیام ارسال نشد. نوشته‌هایتان سر جایشان است؛ چند لحظه بعد دوباره «ارسال» را بزنید. اگر باز هم نشد، صفحه را تازه کنید — متن‌تان پاک نمی‌شود.",
+      values: formValues(formData),
+    };
+  }
+}
+
 export function ContactForm({ defaultType }: { defaultType?: CollaborationType }) {
-  const [state, formAction, pending] = useActionState<InquiryFormState, FormData>(submitInquiry, {
+  const [state, formAction, pending] = useActionState<InquiryFormState, FormData>(submitSafely, {
     status: "idle",
   });
 
@@ -23,7 +74,36 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
 
   useEffect(() => {
     startedAt.current = Date.now();
+
+    // Bring back a draft from before a reload or a crash. Inputs are
+    // uncontrolled, so fill them directly rather than re-rendering.
+    const form = formRef.current;
+    const draft = readDraft();
+    if (!form || !draft) return;
+    for (const [name, value] of Object.entries(draft)) {
+      if (!value) continue;
+      const control = form.elements.namedItem(name);
+      if (control instanceof RadioNodeList) {
+        control.value = value;
+      } else if (control instanceof HTMLInputElement && control.type === "checkbox") {
+        control.checked = true;
+      } else if (
+        control instanceof HTMLInputElement ||
+        control instanceof HTMLTextAreaElement ||
+        control instanceof HTMLSelectElement
+      ) {
+        control.value = value;
+      }
+    }
   }, []);
+
+  function saveDraft(form: HTMLFormElement) {
+    try {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(formValues(form)));
+    } catch {
+      // Storage full or blocked: the draft is a convenience, not a requirement.
+    }
+  }
 
   // Browser-only context is written into the hidden fields just before the
   // action reads the form, so no extra render is needed to hold it.
@@ -49,6 +129,9 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
       first?.focus();
     }
     if (state.status === "success") {
+      try {
+        sessionStorage.removeItem(DRAFT_KEY);
+      } catch {}
       successRef.current?.focus();
     }
   }, [state]);
@@ -59,17 +142,17 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
         ref={successRef}
         tabIndex={-1}
         role="status"
-        className="rounded-2xl border border-line bg-surface p-8 text-center outline-none md:p-12"
+        className="glass rounded-2xl p-8 text-center outline-none md:p-12"
       >
         <CheckCircle2 className="mx-auto size-14 text-success" aria-hidden="true" />
-        <h2 className="mt-5 text-2xl">پیام شما رسید</h2>
+        <h2 className="mt-5 text-2xl">پیام‌تان رسید</h2>
         <p className="mx-auto mt-3 max-w-md leading-loose text-ink-muted">
-          ممنون که وقت گذاشتید. درخواست را می‌خوانم و معمولاً ظرف دو روز کاری با ایمیلی که وارد کردید
-          تماس می‌گیرم.
+          ممنون که وقت گذاشتید. پیام با دقت خوانده می‌شود و پاسخ آن به ایمیلی که وارد کردید
+          ارسال می‌شود.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/episodes" className={buttonStyles({ variant: "outline" })}>
-            در این فاصله، یک اپیزود بشنوید
+            تا آن زمان، یک اپیزود بشنوید
           </Link>
         </div>
       </div>
@@ -79,12 +162,16 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
   const errors = state.status === "error" ? (state.fieldErrors ?? {}) : {};
   const values = state.status === "error" ? (state.values ?? {}) : {};
   const selectedType = (values.collaborationType as CollaborationType | undefined) ?? defaultType;
+  // React applies a <select>'s defaultValue only on mount, and React 19 resets
+  // the form after every submit — so the selects below are keyed by the echoed
+  // value to remount with it, or a failed submit would silently blank them.
 
   return (
     <form
       ref={formRef}
       action={formAction}
       onSubmit={(event) => fillMeta(event.currentTarget)}
+      onChange={(event) => saveDraft(event.currentTarget)}
       noValidate
       className="flex flex-col gap-7"
     >
@@ -95,7 +182,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
       ) : null}
 
       {/* Anti-spam: invisible to people, tempting to bots. */}
-      <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+      <div aria-hidden="true" className="sr-only">
         <label htmlFor="website">وب‌سایت</label>
         <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
@@ -106,7 +193,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
       {/* Collaboration type as cards: the options are the offer, so show them. */}
       <fieldset>
         <legend className="text-sm font-semibold text-ink">
-          چه نوع همکاری‌ای در نظر دارید؟
+          به کدام شکل کار نزدیک‌تر است؟
           <span className="text-danger" aria-hidden="true">
             {" *"}
           </span>
@@ -154,6 +241,19 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
             <Input {...props} type="email" dir="ltr" autoComplete="email" inputMode="email" defaultValue={values.email} />
           )}
         </Field>
+        <Field name="phone" label="شماره‌ی تماس" hint="برای هماهنگی سریع‌تر؛ اختیاری." error={errors.phone}>
+          {(props) => (
+            <Input
+              {...props}
+              type="tel"
+              dir="ltr"
+              autoComplete="tel"
+              inputMode="tel"
+              placeholder="0912 000 0000"
+              defaultValue={values.phone}
+            />
+          )}
+        </Field>
         <Field name="company" label="نام سازمان" error={errors.company}>
           {(props) => <Input {...props} autoComplete="organization" defaultValue={values.company} />}
         </Field>
@@ -167,14 +267,9 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
             />
           )}
         </Field>
-        <Field name="phone" label="شماره‌ی تماس" error={errors.phone}>
-          {(props) => (
-            <Input {...props} type="tel" dir="ltr" autoComplete="tel" inputMode="tel" defaultValue={values.phone} />
-          )}
-        </Field>
         <Field name="teamSize" label="اندازه‌ی تیم" error={errors.teamSize}>
           {(props) => (
-            <Select {...props} defaultValue={values.teamSize ?? ""}>
+            <Select {...props} key={values.teamSize ?? ""} defaultValue={values.teamSize ?? ""}>
               <option value="">انتخاب کنید</option>
               {TEAM_SIZES.map((size) => (
                 <option key={size} value={size}>
@@ -188,7 +283,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
 
       <Field name="timeline" label="زمان‌بندی" error={errors.timeline}>
         {(props) => (
-          <Select {...props} defaultValue={values.timeline ?? ""}>
+          <Select {...props} key={values.timeline ?? ""} defaultValue={values.timeline ?? ""}>
             <option value="">انتخاب کنید</option>
             {TIMELINES.map((timeline) => (
               <option key={timeline} value={timeline}>
@@ -201,8 +296,8 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
 
       <Field
         name="message"
-        label="درباره‌ی نیازتان بگویید"
-        hint="چه مسئله‌ای در تیم یا سازمان‌تان هست و چه نتیجه‌ای انتظار دارید؟ جزئیات بیشتر، پاسخ دقیق‌تری می‌سازد."
+        label="درباره‌ی مسئله"
+        hint="چه می‌گذرد، از کی، و تا امروز چه چیزهایی امتحان شده است."
         required
         error={errors.message}
       >
@@ -214,6 +309,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
           <input
             type="checkbox"
             name="consent"
+            defaultChecked={values.consent === "on"}
             aria-invalid={errors.consent ? true : undefined}
             aria-describedby={errors.consent ? "consent-error" : undefined}
             className="mt-1.5 size-4 shrink-0 accent-[var(--brand)]"
@@ -231,7 +327,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
       </div>
 
       <div className="flex flex-col-reverse items-stretch gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-ink-subtle">پاسخ معمولاً ظرف دو روز کاری ارسال می‌شود.</p>
+        <p className="text-xs text-ink-subtle">هر پیام پاسخ می‌گیرد.</p>
         <Button type="submit" size="lg" disabled={pending} className="sm:min-w-44">
           {pending ? (
             <>
@@ -240,7 +336,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
             </>
           ) : (
             <>
-              ارسال درخواست
+              ارسال
               <Send className="size-4 -scale-x-100" aria-hidden="true" />
             </>
           )}

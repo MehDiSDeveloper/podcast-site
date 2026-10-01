@@ -12,10 +12,12 @@ import { db } from "@/server/db";
  * and a valid <language>, plus per-item <enclosure> carrying url, byte length
  * and MIME type, an itunes:summary and an HH:MM:SS itunes:duration.
  *
- * Revalidated hourly; admin publishes call revalidatePath("/feed.xml") so a new
- * episode appears immediately.
+ * Built per request. The image is built without the production database, so a
+ * cached feed would start life empty and podcast clients — which poll far more
+ * often than the site is edited — would be served that empty feed until it
+ * expired. Serialising a few dozen episodes from local SQLite is cheap.
  */
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const [episodes, show] = await Promise.all([
@@ -56,7 +58,10 @@ export async function GET() {
       ${episode.episodeNumber ? `<itunes:episode>${episode.episodeNumber}</itunes:episode>` : ""}
       ${episode.seasonNumber ? `<itunes:season>${episode.seasonNumber}</itunes:season>` : ""}
       ${episode.coverImage ? `<itunes:image href="${escape(absolute(episode.coverImage))}" />` : ""}
-      ${episode.topics.map((link) => `<category>${escape(link.topic.name)}</category>`).join("\n      ")}
+      ${[episode.category?.name, ...episode.tags.map((link) => link.tag.name)]
+        .filter((name): name is string => Boolean(name))
+        .map((name) => `<category>${escape(name)}</category>`)
+        .join("\n      ")}
     </item>`;
     })
     .join("\n");

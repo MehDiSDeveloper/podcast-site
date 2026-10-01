@@ -10,6 +10,7 @@ const inquiryTones = {
   NEW: "accent",
   READ: "neutral",
   REPLIED: "success",
+  REJECTED: "danger",
   ARCHIVED: "neutral",
 } as const;
 

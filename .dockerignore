@@ -1,0 +1,15 @@
+.git
+.next
+node_modules
+src/generated
+data
+storage
+prisma/*.db
+prisma/*.db-journal
+.env*
+!.env.example
+.claude
+.idea
+.vscode
+*.tsbuildinfo
+npm-debug.log*

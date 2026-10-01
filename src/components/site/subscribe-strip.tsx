@@ -22,7 +22,7 @@ export function SubscribeStrip({ className }: { className?: string }) {
     .filter((entry) => entry.url);
 
   return (
-    <div className={cn("rounded-2xl border border-line bg-surface p-6", className)}>
+    <div className={cn("glass spotlight rounded-2xl p-6", className)}>
       <h2 className="text-lg font-bold">شنیدن در اپلیکیشن دلخواه‌تان</h2>
       <p className="mt-2 text-sm leading-loose text-ink-muted">
         اپیزود تازه را همان‌جایی بشنوید که همیشه پادکست گوش می‌دهید.

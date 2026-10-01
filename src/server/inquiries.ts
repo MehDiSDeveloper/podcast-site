@@ -1,15 +1,18 @@
 import "server-only";
 
-import { COLLABORATION_TYPE_LABELS, type InquiryStatus } from "@/lib/enums";
+import { after } from "next/server";
+
+import type { InquiryStatus } from "@/lib/enums";
 import type { InquiryInput } from "@/lib/validation/inquiry";
 
 import { db } from "./db";
+import { notifyNewInquiry } from "./inquiry-notifications";
 
 /**
  * Collaboration inquiries.
  *
- * Every submission is stored first and notified second, so a failing webhook
- * can never lose a lead — the admin panel is always the source of truth.
+ * Every submission is stored first and notified second, so a failing email or
+ * webhook can never lose a lead — the admin panel is always the source of truth.
  */
 
 /** A real person rarely sends more than a couple of requests an hour. */
@@ -52,61 +55,56 @@ export async function createInquiry(
     },
   });
 
-  // Fire-and-forget: the visitor should not wait on, or fail because of, a
-  // third-party notification service.
-  void notifyNewInquiry(inquiry).catch((error) =>
-    console.error("[inquiries] notification failed:", error),
-  );
+  // Runs after the response is sent: the visitor should not wait on, or fail
+  // because of, a mail server or third-party webhook.
+  after(() => notifyNewInquiry(inquiry));
 
   return inquiry;
 }
 
-/**
- * Posts a JSON summary to INQUIRY_WEBHOOK_URL when one is configured. A plain
- * webhook keeps this provider-agnostic: Slack, Discord, n8n, Zapier or a
- * custom endpoint all accept it without adding an SDK dependency.
- */
-async function notifyNewInquiry(inquiry: {
-  id: string;
-  name: string;
-  email: string;
-  company: string | null;
-  collaborationType: string;
-  message: string;
-}) {
-  const url = process.env.INQUIRY_WEBHOOK_URL;
-  if (!url) return;
-
-  const typeLabel =
-    COLLABORATION_TYPE_LABELS[inquiry.collaborationType as keyof typeof COLLABORATION_TYPE_LABELS] ??
-    inquiry.collaborationType;
-
-  const summary = [
-    `درخواست همکاری تازه: ${typeLabel}`,
-    `${inquiry.name}${inquiry.company ? ` — ${inquiry.company}` : ""} <${inquiry.email}>`,
-    inquiry.message.slice(0, 280),
-  ].join("\n");
-
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    // `text` and `content` cover Slack and Discord; `inquiry` is for custom handlers.
-    body: JSON.stringify({ text: summary, content: summary, inquiry }),
-    signal: AbortSignal.timeout(5000),
-  });
-}
-
 // ------------------------------------------------------------- admin reads
 
-export async function listInquiries({ status }: { status?: InquiryStatus } = {}) {
+/** Without filters: everything but the archive. Favourites include archived ones. */
+export async function listInquiries({ status, starred }: { status?: InquiryStatus; starred?: boolean } = {}) {
   return db.inquiry.findMany({
-    where: status ? { status } : { status: { not: "ARCHIVED" } },
+    where: starred ? { starred: true } : status ? { status } : { status: { not: "ARCHIVED" } },
     orderBy: { createdAt: "desc" },
   });
 }
 
 export async function getInquiry(id: string) {
   return db.inquiry.findUnique({ where: { id } });
+}
+
+// ----------------------------------------------------------- admin writes
+
+/** Moves an inquiry to `status`; the first move away from NEW stamps readAt. Returns null if missing. */
+export async function setInquiryStatus(id: string, status: InquiryStatus) {
+  const inquiry = await getInquiry(id);
+  if (!inquiry) return null;
+  if (inquiry.status === status) return inquiry;
+
+  return db.inquiry.update({
+    where: { id },
+    data: { status, readAt: status === "NEW" ? inquiry.readAt : (inquiry.readAt ?? new Date()) },
+  });
+}
+
+/**
+ * Marks an inquiry as seen (NEW → READ) or back to unseen (→ NEW).
+ * Seeing an already-handled inquiry keeps its status. Returns null if missing.
+ */
+export async function setInquirySeen(id: string, seen: boolean) {
+  const inquiry = await getInquiry(id);
+  if (!inquiry) return null;
+
+  if (seen) return inquiry.status === "NEW" ? setInquiryStatus(id, "READ") : inquiry;
+  return setInquiryStatus(id, "NEW");
+}
+
+export async function setInquiryStarred(id: string, starred: boolean) {
+  const { count } = await db.inquiry.updateMany({ where: { id }, data: { starred } });
+  return count > 0 ? getInquiry(id) : null;
 }
 
 export async function countNewInquiries() {

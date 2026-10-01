@@ -6,6 +6,7 @@ import { inquiryUpdateSchema, type InquiryUpdateInput } from "@/lib/validation/a
 import { toFieldErrors, type FormState } from "@/lib/validation/episode";
 import { requireUser } from "@/server/auth";
 import { db } from "@/server/db";
+import { setInquiryStarred } from "@/server/inquiries";
 
 export type InquiryFormState = FormState<keyof InquiryUpdateInput>;
 
@@ -30,4 +31,10 @@ export async function updateInquiryAction(_previous: InquiryFormState, formData:
   // The sidebar badge counts NEW inquiries, so the whole panel is refreshed.
   revalidatePath("/admin", "layout");
   return { status: "success", message: "ذخیره شد." };
+}
+
+export async function setInquiryStarredAction(id: string, starred: boolean): Promise<void> {
+  await requireUser();
+  await setInquiryStarred(id, starred);
+  revalidatePath("/admin/inquiries", "layout");
 }

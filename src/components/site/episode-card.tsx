@@ -22,7 +22,6 @@ export function EpisodeCard({
   className?: string;
 }) {
   const track = toPlayerTrack(episode);
-  const topics = episode.topics.map((link) => link.topic);
 
   const meta = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-ink-subtle">
@@ -43,8 +42,8 @@ export function EpisodeCard({
     return (
       <article
         className={cn(
-          "group relative flex items-start gap-4 rounded-xl border border-line bg-surface p-4 transition-all duration-300",
-          "hover:border-line-strong hover:shadow-card sm:gap-5 sm:p-5",
+          "glass spotlight group relative flex items-start gap-4 rounded-xl p-4 transition-all duration-300",
+          "hover:-translate-y-0.5 sm:gap-5 sm:p-5",
           className,
         )}
       >
@@ -57,7 +56,7 @@ export function EpisodeCard({
             </Link>
           </h3>
           <p className="mt-2 line-clamp-2 text-sm leading-loose text-ink-muted">{episode.description}</p>
-          <TopicList topics={topics} />
+          <CategoryLink category={episode.category} className="mt-3" />
         </div>
       </article>
     );
@@ -66,8 +65,8 @@ export function EpisodeCard({
   return (
     <article
       className={cn(
-        "group relative flex flex-col rounded-2xl border border-line bg-surface p-6 transition-all duration-300",
-        "hover:-translate-y-1 hover:border-line-strong hover:shadow-lifted",
+        "glass spotlight group relative flex flex-col rounded-2xl p-6 transition-all duration-300",
+        "hover:-translate-y-1",
         className,
       )}
     >
@@ -81,35 +80,33 @@ export function EpisodeCard({
       <p className="mt-3 line-clamp-3 flex-1 text-sm leading-loose text-ink-muted">{episode.description}</p>
 
       <div className="mt-5 flex items-center justify-between gap-3">
-        <TopicList topics={topics} className="mt-0" />
+        <CategoryLink category={episode.category} />
         <PlayButton track={track} className="relative z-10 size-11" />
       </div>
     </article>
   );
 }
 
-function TopicList({
-  topics,
+function CategoryLink({
+  category,
   className,
 }: {
-  topics: { slug: string; name: string }[];
+  category: { slug: string; name: string } | null;
   className?: string;
 }) {
-  if (topics.length === 0) return null;
+  // The empty span keeps the play button pinned to the end of the card footer.
+  if (!category) return <span />;
 
   return (
-    <ul className={cn("mt-3 flex flex-wrap gap-1.5", className)}>
-      {topics.slice(0, 2).map((topic) => (
-        <li key={topic.slug}>
-          {/* Relative + z-10 lifts these above the card's full-area link. */}
-          <Link
-            href={`/topics/${topic.slug}`}
-            className="relative z-10 inline-block rounded-full bg-surface-2 px-2.5 py-1 text-xs font-medium text-ink-muted transition-colors hover:bg-brand-soft hover:text-brand-strong"
-          >
-            {topic.name}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    // Relative + z-10 lifts the link above the card's full-area link.
+    <Link
+      href={`/categories/${category.slug}`}
+      className={cn(
+        "chip-tint relative z-10 inline-block self-start rounded-full px-2.5 py-1 text-xs font-medium transition-colors hover:bg-brand-soft hover:text-brand-strong",
+        className,
+      )}
+    >
+      {category.name}
+    </Link>
   );
 }

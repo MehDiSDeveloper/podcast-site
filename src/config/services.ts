@@ -3,85 +3,53 @@ import type { CollaborationType } from "@/lib/enums";
 /**
  * The collaboration offer, in one place.
  *
- * Home, /collaborate, the contact form and the ProfessionalService JSON-LD all
- * read from here, so the positioning stays identical everywhere a hiring
- * manager might land. Each entry is written outcome-first — what the team gets
- * — because that is what shortens the decision, not a description of method.
+ * /collaborate, the contact form and the ProfessionalService JSON-LD all read
+ * from here. The register is deliberately quiet: the podcast is the portfolio,
+ * so these entries name the kinds of work and leave the selling out — no outcome
+ * checklists, no process and never any talk of fees.
  */
 
 export type Service = {
-  /** Matches the contact form's collaboration type, so a card can deep-link. */
+  /** Matches the contact form's collaboration type. */
   type: CollaborationType;
   title: string;
-  /** One line under the title. */
+  /** One sentence: the situation this kind of work is for. */
   summary: string;
-  /** Who this is for — helps the visitor self-select quickly. */
-  audience: string;
-  /** Concrete outcomes. Three is the sweet spot for scannability. */
-  outcomes: string[];
-  format: string;
+  /** Rhythm and scale, stated plainly. */
+  note: string;
 };
 
 export const services: Service[] = [
   {
+    type: "CONSULTING",
+    title: "مسئله‌ی سازمانی",
+    summary:
+      "برای مسئله‌ای مشخص که چند بار «حل» شده و باز برگشته است؛ از فهم ریشه تا همراهی در اجرا.",
+    note: "پروژه‌ای، معمولاً چند هفته تا چند ماه",
+  },
+  {
     type: "COACHING_INDIVIDUAL",
-    title: "کوچینگ فردی مدیران",
-    summary: "همراهی یک‌به‌یک برای مدیرانی که در نقش تازه یا تصمیم سختی گیر کرده‌اند.",
-    audience: "مدیران میانی و ارشد، بنیان‌گذاران",
-    outcomes: [
-      "روشن‌شدن مسئله‌ی واقعی، جدا از آنچه روی سطح دیده می‌شود",
-      "تصمیم‌گیری سریع‌تر در موقعیت‌های مبهم",
-      "الگوهای رفتاری‌ای که مدام هزینه می‌سازند، شناسایی و اصلاح می‌شوند",
-    ],
-    format: "جلسات ۶۰ دقیقه‌ای، دوره‌ی سه تا شش ماهه",
+    title: "همراهی فردی",
+    summary: "برای مدیری که با تصمیمی دشوار یا نقشی تازه، بیش از آنچه نشان می‌دهد تنهاست.",
+    note: "جلسات منظم، در طول چند ماه",
   },
   {
     type: "COACHING_TEAM",
-    title: "کوچینگ تیمی",
-    summary: "کار روی الگوهای ارتباطی تیم، نه فقط روی افراد.",
-    audience: "تیم‌های محصول، فروش، فنی و مدیریتی",
-    outcomes: [
-      "تعارض‌های تکرارشونده به گفت‌وگوی قابل‌مدیریت تبدیل می‌شوند",
-      "نقش‌ها و انتظارها شفاف می‌شوند",
-      "بازخورد دادن در تیم از یک رویداد سالانه به عادت روزمره تبدیل می‌شود",
-    ],
-    format: "جلسات گروهی دوهفته‌ای، دوره‌ی سه ماهه",
+    title: "کار با تیم",
+    summary: "وقتی گره میان آدم‌هاست، نه درون یک نفر؛ و گفت‌وگوهای مهم دیگر اتفاق نمی‌افتند.",
+    note: "دوره‌ای، با فاصله‌ی کافی میان جلسات",
   },
   {
     type: "WORKSHOP",
-    title: "کارگاه و دوره‌ی آموزشی",
-    summary: "کارگاه‌های عملی با محتوای مبتنی بر شواهد، متناسب با بافت سازمان شما.",
-    audience: "سازمان‌ها، تیم‌های منابع انسانی، رویدادهای درون‌سازمانی",
-    outcomes: [
-      "چارچوب‌های قابل‌استفاده از همان روز بعد، نه مفاهیم انتزاعی",
-      "تمرین روی مسئله‌های واقعی خودِ تیم",
-      "زبان مشترکی که بعد از کارگاه در سازمان باقی می‌ماند",
-    ],
-    format: "نیم‌روزه تا دوروزه، حضوری یا آنلاین",
-  },
-  {
-    type: "CONSULTING",
-    title: "مشاوره‌ی سازمانی",
-    summary: "بررسی یک مسئله‌ی مشخص سازمانی و طراحی مسیر حل آن.",
-    audience: "مدیران ارشد و تیم‌های منابع انسانی",
-    outcomes: [
-      "تشخیص ریشه‌ی مسئله به‌جای درمان نشانه‌ها",
-      "طرح اجرایی با گام‌های مشخص و قابل‌سنجش",
-      "همراهی در اجرا تا جایی که تغییر پایدار شود",
-    ],
-    format: "پروژه‌ای، معمولاً شش تا دوازده هفته",
+    title: "کارگاه",
+    summary: "برای سازمانی که به زبانی مشترک نیاز دارد، نه به یک روز انگیزشی.",
+    note: "نیم‌روز تا دو روز، حضوری یا آنلاین",
   },
   {
     type: "SPEAKING",
-    title: "سخنرانی در رویداد",
-    summary: "سخنرانی‌هایی که مخاطب را با یک ایده‌ی قابل‌اجرا ترک می‌کنند.",
-    audience: "همایش‌ها، رویدادهای سازمانی، گردهمایی‌های تیمی",
-    outcomes: [
-      "یک ایده‌ی محوری روشن، نه فهرستی از نکته‌ها",
-      "روایت و شواهد، کنار هم",
-      "پرسش و پاسخ واقعی با مخاطب",
-    ],
-    format: "۳۰ تا ۶۰ دقیقه",
+    title: "سخنرانی",
+    summary: "در رویدادهایی که مخاطب‌شان برای فکر کردن آمده است.",
+    note: "تعداد محدود در سال",
   },
 ];
 
@@ -108,56 +76,4 @@ export const disciplines = [
   "فلسفه",
   "تاریخ",
   "اقتصاد رفتاری",
-];
-
-/** How an engagement runs, shown on /collaborate to make the next step feel small. */
-export const engagementSteps = [
-  {
-    title: "گفت‌وگوی آشنایی",
-    body: "یک جلسه‌ی ۲۰ دقیقه‌ای و رایگان تا مسئله را بشنوم و ببینیم همکاری منطقی است یا نه.",
-  },
-  {
-    title: "تشخیص",
-    body: "پیش از هر پیشنهادی، با چند نفر از تیم صحبت می‌کنم تا مسئله‌ی واقعی از نشانه‌ها جدا شود.",
-  },
-  {
-    title: "پیشنهاد مشخص",
-    body: "طرحی با دامنه، زمان‌بندی، هزینه و معیارهای موفقیتِ روشن — بدون هزینه‌ی پنهان.",
-  },
-  {
-    title: "اجرا و سنجش",
-    body: "اجرا با بازبینی‌های منظم، و سنجش نتیجه در پایان در برابر همان معیارهایی که اول توافق کردیم.",
-  },
-];
-
-/**
- * Answers to the questions a hiring manager actually asks before reaching out.
- * Also emitted as FAQPage structured data on /collaborate.
- */
-export const collaborationFaq = [
-  {
-    question: "همکاری به‌صورت حضوری است یا آنلاین؟",
-    answer:
-      "هر دو. کوچینگ فردی معمولاً آنلاین است و کارگاه‌ها و کوچینگ تیمی بسته به نیاز سازمان می‌توانند حضوری یا آنلاین برگزار شوند.",
-  },
-  {
-    question: "هزینه چطور تعیین می‌شود؟",
-    answer:
-      "هزینه به دامنه، مدت و اندازه‌ی تیم بستگی دارد. بعد از گفت‌وگوی آشنایی، پیشنهادی با هزینه‌ی مشخص و بدون هزینه‌ی پنهان ارسال می‌کنم.",
-  },
-  {
-    question: "نتیجه‌ی همکاری چطور سنجیده می‌شود؟",
-    answer:
-      "در ابتدای کار معیارهای موفقیت را با هم تعریف می‌کنیم — از شاخص‌های رفتاری تیم تا نتایج کسب‌وکاری — و در پایان همان‌ها را می‌سنجیم.",
-  },
-  {
-    question: "محرمانگی اطلاعات سازمان حفظ می‌شود؟",
-    answer:
-      "بله. آنچه در جلسات مطرح می‌شود محرمانه می‌ماند و در صورت نیاز سازمان، قرارداد عدم افشا امضا می‌کنم.",
-  },
-  {
-    question: "حداقل مدت همکاری چقدر است؟",
-    answer:
-      "کارگاه‌ها و سخنرانی‌ها یک‌جلسه‌ای‌اند. برای کوچینگ و مشاوره، تغییر پایدار معمولاً دست‌کم سه ماه زمان می‌برد.",
-  },
 ];

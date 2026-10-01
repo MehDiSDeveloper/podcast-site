@@ -1,0 +1,23 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        # next build inlines this into the client bundle, so it is a build
+        # argument as well as an environment variable. Keep the two in step.
+        NEXT_PUBLIC_SITE_URL: "http://localhost:8006"
+    ports:
+      # 8000–8005 belong to other sites on this machine (8005 is hooshmand-ir).
+      # This site answers on 8006.
+      - "8006:3000"
+    env_file:
+      - .env
+    environment:
+      # These override .env, whose paths are for running outside Docker.
+      DATABASE_URL: "file:/app/data/podcast.db"
+      UPLOAD_DIR: "/app/data/uploads"
+      NEXT_PUBLIC_SITE_URL: "http://localhost:8006"
+    volumes:
+      # The whole persistent world of this app is one directory.
+      - ./data:/app/data
+    restart: unless-stopped

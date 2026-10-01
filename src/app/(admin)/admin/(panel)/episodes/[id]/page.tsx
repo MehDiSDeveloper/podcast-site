@@ -8,7 +8,7 @@ import { EpisodeForm } from "@/components/admin/episode-form";
 import { DeleteButton } from "@/components/admin/form-parts";
 import { buttonStyles } from "@/components/ui/button";
 import { getAdminEpisode } from "@/server/admin/episodes";
-import { getAllTopics } from "@/server/topics";
+import { getEpisodeFormOptions } from "@/server/taxonomy";
 
 import { deleteEpisodeAction } from "../actions";
 
@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "ویرایش اپیزود" };
 
 export default async function EditEpisodePage({ params, searchParams }: PageProps<"/admin/episodes/[id]">) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const [episode, topics] = await Promise.all([getAdminEpisode(id), getAllTopics()]);
+  const [episode, options] = await Promise.all([getAdminEpisode(id), getEpisodeFormOptions()]);
 
   if (!episode) notFound();
 
@@ -49,7 +49,7 @@ export default async function EditEpisodePage({ params, searchParams }: PageProp
       ) : null}
 
       <EpisodeForm
-        topics={topics.map(({ id: topicId, name }) => ({ id: topicId, name }))}
+        options={options}
         initial={{
           id: episode.id,
           title: episode.title,
@@ -70,7 +70,9 @@ export default async function EditEpisodePage({ params, searchParams }: PageProp
           publishedAt: episode.publishedAt?.toISOString() ?? null,
           featured: episode.featured,
           explicit: episode.explicit,
-          topicIds: episode.topics.map((link) => link.topicId),
+          categoryId: episode.categoryId ?? "",
+          lensIds: episode.lenses.map((link) => link.lensId),
+          tags: episode.tags.map((link) => link.tag.name),
           seoTitle: episode.seoTitle ?? "",
           seoDescription: episode.seoDescription ?? "",
         }}

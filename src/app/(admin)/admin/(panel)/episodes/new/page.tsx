@@ -3,13 +3,13 @@ import type { Metadata } from "next";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { EpisodeForm, type EpisodeFormValues } from "@/components/admin/episode-form";
 import { db } from "@/server/db";
-import { getAllTopics } from "@/server/topics";
+import { getEpisodeFormOptions } from "@/server/taxonomy";
 
 export const metadata: Metadata = { title: "اپیزود جدید" };
 
 export default async function NewEpisodePage() {
-  const [topics, last] = await Promise.all([
-    getAllTopics(),
+  const [options, last] = await Promise.all([
+    getEpisodeFormOptions(),
     db.episode.findFirst({ orderBy: { episodeNumber: "desc" }, select: { episodeNumber: true } }),
   ]);
 
@@ -33,7 +33,9 @@ export default async function NewEpisodePage() {
     publishedAt: null,
     featured: false,
     explicit: false,
-    topicIds: [],
+    categoryId: "",
+    lensIds: [],
+    tags: [],
     seoTitle: "",
     seoDescription: "",
   };
@@ -41,7 +43,7 @@ export default async function NewEpisodePage() {
   return (
     <>
       <AdminPageHeader title="اپیزود جدید" description="تا وقتی وضعیت «منتشرشده» نباشد، اپیزود در سایت دیده نمی‌شود." />
-      <EpisodeForm initial={initial} topics={topics.map(({ id, name }) => ({ id, name }))} />
+      <EpisodeForm initial={initial} options={options} />
     </>
   );
 }

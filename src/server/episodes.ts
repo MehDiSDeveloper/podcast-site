@@ -31,7 +31,7 @@ const listSelect = {
   seasonNumber: true,
   publishedAt: true,
   featured: true,
-  topics: { select: { topic: { select: { slug: true, name: true } } } },
+  category: { select: { slug: true, name: true } },
 } as const;
 
 export type EpisodeListItem = Awaited<ReturnType<typeof getEpisodes>>["episodes"][number];
@@ -41,7 +41,10 @@ export const PER_PAGE = 9;
 export type EpisodeQuery = {
   page?: number;
   perPage?: number;
-  topic?: string;
+  /** Slugs. */
+  category?: string;
+  lens?: string;
+  tag?: string;
   search?: string;
   sort?: "newest" | "oldest";
 };
@@ -49,13 +52,17 @@ export type EpisodeQuery = {
 export async function getEpisodes({
   page = 1,
   perPage = PER_PAGE,
-  topic,
+  category,
+  lens,
+  tag,
   search,
   sort = "newest",
 }: EpisodeQuery = {}) {
   const where = {
     ...publishedWhere(),
-    ...(topic ? { topics: { some: { topic: { slug: topic } } } } : {}),
+    ...(category ? { category: { slug: category } } : {}),
+    ...(lens ? { lenses: { some: { lens: { slug: lens } } } } : {}),
+    ...(tag ? { tags: { some: { tag: { slug: tag } } } } : {}),
     ...(search
       ? {
           OR: [
@@ -94,7 +101,9 @@ export const getEpisodeBySlug = cache(async (slug: string) => {
     where: { slug, ...publishedWhere() },
     include: {
       show: true,
-      topics: { select: { topic: { select: { id: true, slug: true, name: true } } } },
+      category: { select: { id: true, slug: true, name: true } },
+      lenses: { select: { lens: { select: { slug: true, name: true } } }, orderBy: { lens: { sortOrder: "asc" } } },
+      tags: { select: { tag: { select: { id: true, slug: true, name: true } } }, orderBy: { tag: { name: "asc" } } },
     },
   });
 });
@@ -127,22 +136,39 @@ export async function getLatestEpisodes(limit = 6, excludeId?: string) {
 }
 
 /**
- * Episodes sharing at least one topic with the given one. This is what turns
- * the archive into an internally linked graph rather than a flat list.
+ * Episodes ranked by how many tags they share with the given one, then by
+ * being in the same category, then by recency. This is what turns the archive
+ * into an internally linked graph rather than a flat list.
  */
-export async function getRelatedEpisodes(episodeId: string, topicIds: string[], limit = 3) {
-  if (topicIds.length === 0) return getLatestEpisodes(limit, episodeId);
+export async function getRelatedEpisodes(
+  episode: { id: string; categoryId: string | null; tagIds: string[] },
+  limit = 3,
+) {
+  const matches = [
+    ...(episode.tagIds.length > 0 ? [{ tags: { some: { tagId: { in: episode.tagIds } } } }] : []),
+    ...(episode.categoryId ? [{ categoryId: episode.categoryId }] : []),
+  ];
 
-  const related = await db.episode.findMany({
-    where: {
-      ...publishedWhere(),
-      id: { not: episodeId },
-      topics: { some: { topicId: { in: topicIds } } },
-    },
-    select: listSelect,
-    orderBy: { publishedAt: "desc" },
-    take: limit,
-  });
+  const candidates =
+    matches.length === 0
+      ? []
+      : await db.episode.findMany({
+          where: { ...publishedWhere(), id: { not: episode.id }, OR: matches },
+          select: { ...listSelect, categoryId: true, tags: { select: { tagId: true } } },
+          orderBy: { publishedAt: "desc" },
+        });
+
+  const tagIds = new Set(episode.tagIds);
+  const related = candidates
+    .map(({ tags, categoryId, ...candidate }) => ({
+      candidate,
+      sharedTags: tags.filter((link) => tagIds.has(link.tagId)).length,
+      sameCategory: categoryId === episode.categoryId ? 1 : 0,
+    }))
+    // Array.prototype.sort is stable, so equal scores keep the newest-first order.
+    .sort((a, b) => b.sharedTags - a.sharedTags || b.sameCategory - a.sameCategory)
+    .slice(0, limit)
+    .map((entry) => entry.candidate);
 
   if (related.length >= limit) return related;
 
@@ -150,7 +176,7 @@ export async function getRelatedEpisodes(episodeId: string, topicIds: string[], 
   const filler = await db.episode.findMany({
     where: {
       ...publishedWhere(),
-      id: { notIn: [episodeId, ...related.map((episode) => episode.id)] },
+      id: { notIn: [episode.id, ...related.map((item) => item.id)] },
     },
     select: listSelect,
     orderBy: { publishedAt: "desc" },
@@ -164,7 +190,11 @@ export async function getRelatedEpisodes(episodeId: string, topicIds: string[], 
 export async function getAllPublishedEpisodes() {
   return db.episode.findMany({
     where: publishedWhere(),
-    include: { show: true, topics: { select: { topic: { select: { slug: true, name: true } } } } },
+    include: {
+      show: true,
+      category: { select: { name: true } },
+      tags: { select: { tag: { select: { name: true } } } },
+    },
     orderBy: { publishedAt: "desc" },
   });
 }

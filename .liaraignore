@@ -1,0 +1,26 @@
+# What Liara must not upload. This file takes priority over .dockerignore and
+# .gitignore, so it has to list everything they would have excluded — the Docker
+# build inside Liara still applies .dockerignore to the context it receives.
+.git
+.gitattributes
+.github
+node_modules
+.next
+out
+src/generated
+data
+storage
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-shm
+prisma/*.db-wal
+.env
+.env.*
+!.env.example
+.claude
+.idea
+.vscode
+*.tsbuildinfo
+npm-debug.log*
+# Stray empty directory from a mistyped shell redirect; safe to delete.
+prisma;C

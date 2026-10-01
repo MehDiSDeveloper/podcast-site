@@ -32,8 +32,8 @@ export function PlayButton({
         onClick={() => player.toggleTrack(track)}
         aria-label={label}
         className={cn(
-          "inline-flex items-center gap-3 rounded-xl bg-brand px-6 text-brand-contrast",
-          "h-14 font-bold shadow-subtle transition-transform hover:scale-[1.02] active:scale-[0.99]",
+          "magnetic sheen glow-brand inline-flex items-center gap-3 rounded-xl bg-brand px-6 text-brand-contrast",
+          "h-14 font-bold transition-[transform,box-shadow] hover:scale-[1.02] active:scale-[0.99]",
           className,
         )}
       >
@@ -55,9 +55,9 @@ export function PlayButton({
       aria-label={label}
       title={label}
       className={cn(
-        "grid size-12 shrink-0 place-items-center rounded-full transition-all duration-200",
+        "magnetic grid size-12 shrink-0 place-items-center rounded-full transition-all duration-200",
         isCurrent
-          ? "bg-brand text-brand-contrast"
+          ? "glow-brand bg-brand text-brand-contrast"
           : "bg-brand-soft text-brand-strong hover:bg-brand hover:text-brand-contrast",
         className,
       )}

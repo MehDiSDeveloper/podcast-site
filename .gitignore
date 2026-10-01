@@ -52,3 +52,9 @@ next-env.d.ts
 
 # generated prisma client
 /src/generated
+
+# docker volume: SQLite database and uploads
+/data
+
+# local Claude Code settings
+.claude/settings.local.json

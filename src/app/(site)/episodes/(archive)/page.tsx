@@ -1,6 +1,7 @@
 import { Search, X } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { JsonLd } from "@/components/seo/json-ld";
 import { EpisodeCard } from "@/components/site/episode-card";
@@ -11,11 +12,11 @@ import { siteConfig } from "@/config/site";
 import { breadcrumbSchema, collectionPageSchema, graph, podcastSeriesSchema } from "@/lib/structured-data";
 import { cn, toFaDigits } from "@/lib/utils";
 import { getEpisodes } from "@/server/episodes";
-import { getTopics } from "@/server/topics";
+import { getCategories, getLenses, getTagBySlug } from "@/server/taxonomy";
 
 export const metadata: Metadata = {
   title: "همه‌ی اپیزودها",
-  description: `آرشیو کامل اپیزودهای ${siteConfig.name}؛ جست‌وجو بر اساس موضوع، عنوان یا محتوای اپیزود.`,
+  description: `آرشیو کامل اپیزودهای ${siteConfig.name}؛ جست‌وجو و فیلتر بر اساس دسته، دریچه، برچسب، عنوان یا محتوای اپیزود.`,
   alternates: { canonical: "/episodes" },
   openGraph: {
     title: `همه‌ی اپیزودها | ${siteConfig.name}`,
@@ -31,18 +32,22 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
     (Array.isArray(value) ? value[0] : value)?.trim() || undefined;
 
   const search = readOne(params.search);
-  const topic = readOne(params.topic);
+  const category = readOne(params.category);
+  const lens = readOne(params.lens);
+  const tag = readOne(params.tag);
   const sort = readOne(params.sort) === "oldest" ? "oldest" : "newest";
   const page = Math.max(1, Number(readOne(params.page) ?? 1) || 1);
 
-  const [{ episodes, total, pageCount }, topics] = await Promise.all([
-    getEpisodes({ page, topic, search, sort }),
-    getTopics(),
+  const [{ episodes, total, pageCount }, categories, lenses, activeTag] = await Promise.all([
+    getEpisodes({ page, category, lens, tag, search, sort }),
+    getCategories(),
+    getLenses(),
+    tag ? getTagBySlug(tag) : null,
   ]);
 
   const buildHref = (overrides: Record<string, string | number | undefined>) => {
     const next = new URLSearchParams();
-    const merged = { search, topic, sort: sort === "newest" ? undefined : sort, page, ...overrides };
+    const merged = { search, category, lens, tag, sort: sort === "newest" ? undefined : sort, page, ...overrides };
 
     for (const [key, value] of Object.entries(merged)) {
       if (value !== undefined && value !== "" && !(key === "page" && value === 1)) {
@@ -54,7 +59,7 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
     return query ? `/episodes?${query}` : "/episodes";
   };
 
-  const isFiltered = Boolean(search || topic);
+  const isFiltered = Boolean(search || category || lens || tag);
 
   return (
     <>
@@ -77,13 +82,15 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
       <PageHeader
         eyebrow="آرشیو"
         title="همه‌ی اپیزودها"
-        lead="هر اپیزود سراغ یک مسئله‌ی مشخص در کار یا زندگی می‌رود. با جست‌وجو یا موضوع، آنچه را الان لازم دارید پیدا کنید."
+        lead="هر اپیزود سراغ یک مسئله‌ی مشخص در کار یا زندگی می‌رود. با جست‌وجو، دسته یا دریچه، آنچه را الان لازم دارید پیدا کنید."
       />
 
       <div className="container-page py-12 md:py-16">
         {/* Search */}
         <form method="get" action="/episodes" role="search" className="flex flex-wrap gap-3">
-          {topic ? <input type="hidden" name="topic" value={topic} /> : null}
+          {category ? <input type="hidden" name="category" value={category} /> : null}
+          {lens ? <input type="hidden" name="lens" value={lens} /> : null}
+          {tag ? <input type="hidden" name="tag" value={tag} /> : null}
           {sort === "oldest" ? <input type="hidden" name="sort" value="oldest" /> : null}
 
           <div className="relative flex-1 min-w-64">
@@ -97,7 +104,7 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
               defaultValue={search ?? ""}
               placeholder="جست‌وجو در عنوان و متن اپیزودها…"
               aria-label="جست‌وجو در اپیزودها"
-              className="h-12 w-full rounded-xl border border-line-strong bg-surface pr-12 pl-4 text-[0.9375rem] placeholder:text-ink-subtle focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15"
+              className="h-12 w-full rounded-xl border border-line-strong bg-surface pr-12 backdrop-blur-xl pl-4 text-[0.9375rem] placeholder:text-ink-subtle focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15"
             />
           </div>
 
@@ -113,29 +120,63 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
           ) : null}
         </form>
 
-        {/* Topic filters */}
-        {topics.length > 0 ? (
-          <div className="mt-6 flex flex-wrap gap-2" role="group" aria-label="فیلتر بر اساس موضوع">
-            <Link
-              href={buildHref({ topic: undefined, page: 1 })}
-              aria-current={!topic ? "true" : undefined}
-              className={chipStyles(!topic)}
-            >
-              همه
-            </Link>
-            {topics.map((item) => (
+        {/* Taxonomy filters */}
+        <div className="mt-6 flex flex-col gap-3">
+          {categories.length > 0 ? (
+            <FilterRow label="دسته">
               <Link
-                key={item.slug}
-                href={buildHref({ topic: item.slug, page: 1 })}
-                aria-current={topic === item.slug ? "true" : undefined}
-                className={chipStyles(topic === item.slug)}
+                href={buildHref({ category: undefined, page: 1 })}
+                aria-current={!category ? "true" : undefined}
+                className={chipStyles(!category)}
               >
-                {item.name}
-                <span className="nums mr-1.5 text-xs opacity-60">{toFaDigits(item.episodeCount)}</span>
+                همه
               </Link>
-            ))}
-          </div>
-        ) : null}
+              {categories.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={buildHref({ category: item.slug, page: 1 })}
+                  aria-current={category === item.slug ? "true" : undefined}
+                  className={chipStyles(category === item.slug)}
+                >
+                  {item.name}
+                  <span className="nums mr-1.5 text-xs opacity-60">{toFaDigits(item.episodeCount)}</span>
+                </Link>
+              ))}
+            </FilterRow>
+          ) : null}
+
+          {lenses.length > 0 ? (
+            <FilterRow label="دریچه">
+              <Link
+                href={buildHref({ lens: undefined, page: 1 })}
+                aria-current={!lens ? "true" : undefined}
+                className={chipStyles(!lens)}
+              >
+                همه
+              </Link>
+              {lenses.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={buildHref({ lens: item.slug, page: 1 })}
+                  aria-current={lens === item.slug ? "true" : undefined}
+                  className={chipStyles(lens === item.slug)}
+                >
+                  {item.name}
+                  <span className="nums mr-1.5 text-xs opacity-60">{toFaDigits(item.episodeCount)}</span>
+                </Link>
+              ))}
+            </FilterRow>
+          ) : null}
+
+          {tag ? (
+            <FilterRow label="برچسب">
+              <Link href={buildHref({ tag: undefined, page: 1 })} aria-current="true" className={chipStyles(true)}>
+                {activeTag?.name ?? tag}
+                <X className="mr-1.5 size-3.5" aria-label="حذف فیلتر برچسب" />
+              </Link>
+            </FilterRow>
+          ) : null}
+        </div>
 
         {/* Result summary + sort */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
@@ -167,7 +208,7 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
         ) : (
           <ul className="mt-8 flex flex-col gap-4">
             {episodes.map((episode) => (
-              <li key={episode.id}>
+              <li key={episode.id} className="reveal">
                 <EpisodeCard episode={episode} layout="row" />
               </li>
             ))}
@@ -177,6 +218,15 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
         <Pagination page={page} pageCount={pageCount} buildHref={(next) => buildHref({ page: next })} />
       </div>
     </>
+  );
+}
+
+function FilterRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`فیلتر بر اساس ${label}`}>
+      <span className="ml-1 w-12 shrink-0 text-sm text-ink-subtle">{label}</span>
+      {children}
+    </div>
   );
 }
 
@@ -198,7 +248,7 @@ function sortStyles(active: boolean) {
 
 function EmptyState({ isFiltered }: { isFiltered: boolean }) {
   return (
-    <div className="mt-8 rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-20 text-center">
+    <div className="mt-8 rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-20 backdrop-blur-xl text-center">
       <p className="text-lg font-bold">اپیزودی پیدا نشد</p>
       <p className="mx-auto mt-2 max-w-md text-sm leading-loose text-ink-muted">
         {isFiltered

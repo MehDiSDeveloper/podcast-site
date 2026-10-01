@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { episodeSchema, toFieldErrors, type EpisodeInput, type FormState } from "@/lib/validation/episode";
 import { deleteEpisode, getAdminEpisode, saveEpisode } from "@/server/admin/episodes";
+import { categoryExists } from "@/server/admin/taxonomy";
 import { requireUser } from "@/server/auth";
 import { revalidatePublicContent } from "@/server/revalidate";
 import { deleteUpload } from "@/server/uploads";
@@ -14,16 +15,29 @@ export async function saveEpisodeAction(_previous: EpisodeFormState, formData: F
   await requireUser();
 
   const id = String(formData.get("id") ?? "") || undefined;
+  const listKeys = ["lensIds", "tags"];
   const raw = Object.fromEntries(
-    [...formData.keys()].filter((key) => key !== "topicIds").map((key) => [key, formData.get(key)?.toString()]),
+    [...formData.keys()].filter((key) => !listKeys.includes(key)).map((key) => [key, formData.get(key)?.toString()]),
   );
-  const parsed = episodeSchema.safeParse({ ...raw, topicIds: formData.getAll("topicIds").map(String) });
+  const parsed = episodeSchema.safeParse({
+    ...raw,
+    lensIds: formData.getAll("lensIds").map(String),
+    tags: formData.getAll("tags").map(String),
+  });
 
   if (!parsed.success) {
     return {
       status: "error",
       message: "چند فیلد نیاز به اصلاح دارد.",
       fieldErrors: toFieldErrors<keyof EpisodeInput>(parsed.error.issues),
+    };
+  }
+
+  if (parsed.data.categoryId && !(await categoryExists(parsed.data.categoryId))) {
+    return {
+      status: "error",
+      message: "چند فیلد نیاز به اصلاح دارد.",
+      fieldErrors: { categoryId: "این دسته دیگر وجود ندارد." },
     };
   }
 

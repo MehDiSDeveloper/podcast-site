@@ -5,13 +5,13 @@ import { notFound } from "next/navigation";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { InquiryForm } from "@/components/admin/inquiry-form";
+import { InquiryStarButton } from "@/components/admin/inquiry-star-button";
 import { InquiryStatusBadge } from "@/components/admin/status-badges";
 import { buttonStyles } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
-import { COLLABORATION_TYPE_LABELS, type CollaborationType } from "@/lib/enums";
-import { formatDate } from "@/lib/utils";
-import { db } from "@/server/db";
-import { getInquiry } from "@/server/inquiries";
+import { collaborationLabel, EMPTY_FIELD, inquiryFields } from "@/lib/inquiry-fields";
+import { formatDateTime } from "@/lib/utils";
+import { getInquiry, setInquirySeen } from "@/server/inquiries";
 
 export const metadata: Metadata = { title: "جزئیات درخواست" };
 
@@ -22,21 +22,17 @@ export default async function InquiryDetailPage({ params }: PageProps<"/admin/in
 
   // Opening a new inquiry marks it as read.
   if (inquiry.status === "NEW") {
-    inquiry = await db.inquiry.update({ where: { id }, data: { status: "READ", readAt: new Date() } });
+    inquiry = (await setInquirySeen(id, true)) ?? inquiry;
   }
 
-  const typeLabel = COLLABORATION_TYPE_LABELS[inquiry.collaborationType as CollaborationType] ?? inquiry.collaborationType;
+  const typeLabel = collaborationLabel(inquiry.collaborationType);
   const replySubject = encodeURIComponent(`درخواست ${typeLabel} — ${siteConfig.name}`);
 
+  // Everything the visitor sent (blanks shown as blanks), then panel metadata.
   const details: [string, string | null][] = [
-    ["نوع همکاری", typeLabel],
-    ["سازمان", inquiry.company],
-    ["سمت", inquiry.roleTitle],
-    ["اندازه‌ی تیم", inquiry.teamSize],
-    ["زمان‌بندی", inquiry.timeline],
-    ["تاریخ ارسال", formatDate(inquiry.createdAt)],
-    ["صفحه‌ی مبدأ", inquiry.sourcePath],
-    ["ورود از", inquiry.referrer],
+    ...inquiryFields(inquiry),
+    ["دیده‌شده در", inquiry.readAt ? formatDateTime(inquiry.readAt) : null],
+    ["مرورگر", inquiry.userAgent],
   ];
 
   return (
@@ -51,6 +47,7 @@ export default async function InquiryDetailPage({ params }: PageProps<"/admin/in
         description={inquiry.company ?? undefined}
         actions={
           <>
+            <InquiryStarButton id={inquiry.id} starred={inquiry.starred} />
             <InquiryStatusBadge status={inquiry.status} />
             <a href={`mailto:${inquiry.email}?subject=${replySubject}`} className={buttonStyles({ size: "sm" })}>
               <Mail className="size-4" aria-hidden="true" />
@@ -99,14 +96,14 @@ export default async function InquiryDetailPage({ params }: PageProps<"/admin/in
           <section className="rounded-2xl border border-line bg-surface p-6">
             <h2 className="text-base font-bold">جزئیات</h2>
             <dl className="mt-4 flex flex-col gap-3 text-sm">
-              {details
-                .filter(([, value]) => value)
-                .map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-xs text-ink-subtle">{label}</dt>
-                    <dd className="mt-0.5 break-words font-medium">{value}</dd>
-                  </div>
-                ))}
+              {details.map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-xs text-ink-subtle">{label}</dt>
+                  <dd dir="auto" className={value ? "mt-0.5 break-words font-medium" : "mt-0.5 text-ink-subtle"}>
+                    {value || EMPTY_FIELD}
+                  </dd>
+                </div>
+              ))}
             </dl>
           </section>
         </aside>

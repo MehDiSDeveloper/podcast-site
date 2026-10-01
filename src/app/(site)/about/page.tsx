@@ -71,13 +71,13 @@ export default function AboutPage() {
         </div>
 
         <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-line bg-surface p-6">
+          <div className="glass spotlight rounded-2xl p-6">
             <h2 className="text-base font-bold">زمینه‌هایی که از آن‌ها وام می‌گیرم</h2>
             <ul className="mt-4 flex flex-wrap gap-2">
               {disciplines.map((discipline) => (
                 <li
                   key={discipline}
-                  className="rounded-full bg-brand-soft px-3.5 py-1.5 text-sm font-medium text-brand-strong"
+                  className="chip-tint rounded-full px-3.5 py-1.5 text-sm font-medium"
                 >
                   {discipline}
                 </li>
@@ -86,7 +86,7 @@ export default function AboutPage() {
           </div>
 
           {credentials.length > 0 ? (
-            <div className="rounded-2xl border border-line bg-surface p-6">
+            <div className="glass spotlight rounded-2xl p-6">
               <h2 className="text-base font-bold">سوابق و مدارک</h2>
               <ul className="mt-4 flex flex-col gap-3">
                 {credentials.map((credential) => (
@@ -99,26 +99,26 @@ export default function AboutPage() {
             </div>
           ) : null}
 
-          <div className="rounded-2xl border border-line bg-brand-soft p-6">
-            <h2 className="text-base font-bold text-brand-strong">برای تیم‌تان به دنبال همراه هستید؟</h2>
+          <div className="glass spotlight rounded-2xl p-6">
+            <h2 className="text-base font-bold">همکاری</h2>
             <p className="mt-2.5 text-sm leading-loose text-ink-muted">
-              کوچینگ، کارگاه، مشاوره یا سخنرانی — از یک گفت‌وگوی کوتاه شروع کنیم.
+              در کنار پادکست، تعداد محدودی همکاری با مدیران و سازمان‌ها پذیرفته می‌شود.
             </p>
-            <Link href="/collaborate" className={buttonStyles({ className: "mt-5 w-full" })}>
-              شکل‌های همکاری
+            <Link href="/collaborate" className={buttonStyles({ variant: "outline", className: "mt-5 w-full" })}>
+              درباره‌ی همکاری
             </Link>
           </div>
         </aside>
       </div>
 
-      <section aria-labelledby="approach-heading" className="border-t border-line bg-surface">
+      <section aria-labelledby="approach-heading" className="border-t border-line">
         <div className="container-page py-14 md:py-20">
           <h2 id="approach-heading" className="text-2xl md:text-3xl">
             رویکردم
           </h2>
           <ul className="mt-8 grid gap-5 md:grid-cols-3">
             {principles.map((principle) => (
-              <li key={principle.title} className="rounded-2xl border border-line bg-canvas p-7">
+              <li key={principle.title} className="reveal glass spotlight rounded-2xl p-7">
                 <h3 className="text-lg font-bold">{principle.title}</h3>
                 <p className="mt-3 leading-loose text-ink-muted">{principle.body}</p>
               </li>

@@ -5,6 +5,7 @@ import { slugify } from "@/lib/utils";
 import type { EpisodeInput } from "@/lib/validation/episode";
 
 import { db } from "../db";
+import { resolveTagIds } from "./taxonomy";
 
 /** Admin-side episode data access. Unlike src/server/episodes.ts, sees drafts. */
 
@@ -34,7 +35,10 @@ export async function listAdminEpisodes({ status }: { status?: EpisodeStatus } =
 export async function getAdminEpisode(id: string) {
   return db.episode.findUnique({
     where: { id },
-    include: { topics: { select: { topicId: true } } },
+    include: {
+      lenses: { select: { lensId: true } },
+      tags: { select: { tag: { select: { name: true } } }, orderBy: { tag: { name: "asc" } } },
+    },
   });
 }
 
@@ -97,6 +101,7 @@ export async function saveEpisode(input: EpisodeInput, id?: string) {
     explicit: input.explicit,
     seoTitle: input.seoTitle ?? null,
     seoDescription: input.seoDescription ?? null,
+    categoryId: input.categoryId ?? null,
   };
 
   return db.$transaction(async (tx) => {
@@ -109,12 +114,18 @@ export async function saveEpisode(input: EpisodeInput, id?: string) {
       await tx.episode.updateMany({ where: { featured: true, id: { not: episode.id } }, data: { featured: false } });
     }
 
-    await tx.episodeTopic.deleteMany({ where: { episodeId: episode.id } });
-    if (input.topicIds.length > 0) {
-      const valid = await tx.topic.findMany({ where: { id: { in: input.topicIds } }, select: { id: true } });
-      await tx.episodeTopic.createMany({
-        data: valid.map((topic) => ({ episodeId: episode.id, topicId: topic.id })),
+    await tx.episodeLens.deleteMany({ where: { episodeId: episode.id } });
+    if (input.lensIds.length > 0) {
+      const valid = await tx.lens.findMany({ where: { id: { in: input.lensIds } }, select: { id: true } });
+      await tx.episodeLens.createMany({
+        data: valid.map((lens) => ({ episodeId: episode.id, lensId: lens.id })),
       });
+    }
+
+    await tx.episodeTag.deleteMany({ where: { episodeId: episode.id } });
+    const tagIds = await resolveTagIds(tx, input.tags);
+    if (tagIds.length > 0) {
+      await tx.episodeTag.createMany({ data: tagIds.map((tagId) => ({ episodeId: episode.id, tagId })) });
     }
 
     return episode;

@@ -21,7 +21,7 @@ export function PlayerBar() {
   return (
     <div
       className={cn(
-        "player-bar-active fixed inset-x-0 bottom-0 z-50 border-t border-line bg-canvas/92 shadow-player backdrop-blur-xl",
+        "player-bar-active fixed inset-x-0 bottom-0 z-50 glass-bar border-t border-line shadow-player",
         // The bar only mounts once a track is chosen, so a CSS entry animation is enough.
         "animate-[player-in_500ms_var(--ease-out-soft)]",
       )}

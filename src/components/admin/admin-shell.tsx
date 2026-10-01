@@ -2,11 +2,13 @@
 
 import {
   ExternalLink,
+  Folder,
   Inbox,
   LayoutDashboard,
   LogOut,
   Menu,
   Mic,
+  ScanEye,
   Tags,
   UserCog,
   X,
@@ -45,7 +47,9 @@ export function AdminShell({
   const nav: NavItem[] = [
     { href: "/admin", label: "داشبورد", icon: LayoutDashboard, exact: true },
     { href: "/admin/episodes", label: "اپیزودها", icon: Mic },
-    { href: "/admin/topics", label: "موضوع‌ها", icon: Tags },
+    { href: "/admin/categories", label: "دسته‌ها", icon: Folder },
+    { href: "/admin/lenses", label: "دریچه‌ها", icon: ScanEye },
+    { href: "/admin/tags", label: "برچسب‌ها", icon: Tags },
     { href: "/admin/inquiries", label: "درخواست‌های همکاری", icon: Inbox, badge: newInquiries },
     { href: "/admin/account", label: "حساب کاربری", icon: UserCog },
   ];

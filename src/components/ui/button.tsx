@@ -13,9 +13,9 @@ const base =
   "[&_svg]:shrink-0 [&_svg]:size-[1.125em]";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-brand text-brand-contrast shadow-subtle hover:bg-brand-strong",
+  primary: "magnetic sheen glow-brand bg-brand text-brand-contrast hover:bg-brand-strong",
   secondary: "bg-surface-2 text-ink hover:bg-line",
-  outline: "border border-line-strong bg-surface text-ink hover:border-brand hover:text-brand-strong",
+  outline: "magnetic border border-line-strong bg-surface text-ink backdrop-blur-md hover:border-brand hover:text-brand-strong",
   ghost: "text-ink-muted hover:bg-surface-2 hover:text-ink",
   danger: "bg-danger text-white hover:opacity-90",
 };

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { saveEpisodeAction, type EpisodeFormState } from "@/app/(admin)/admin/(panel)/episodes/actions";
 import { Checkbox, FormSection, FormStatus, SubmitButton, useFormAction } from "@/components/admin/form-parts";
 import { detectAudioDuration, formatBytes, parseDuration, uploadFile } from "@/components/admin/media";
+import { TagInput } from "@/components/admin/tag-input";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import {
   EPISODE_STATUS_LABELS,
@@ -37,18 +38,21 @@ export type EpisodeFormValues = {
   publishedAt: string | null;
   featured: boolean;
   explicit: boolean;
-  topicIds: string[];
+  categoryId: string;
+  lensIds: string[];
+  tags: string[];
   seoTitle: string;
   seoDescription: string;
 };
 
-export function EpisodeForm({
-  initial,
-  topics,
-}: {
-  initial: EpisodeFormValues;
-  topics: { id: string; name: string }[];
-}) {
+export type EpisodeFormOptions = {
+  categories: { id: string; name: string }[];
+  lenses: { id: string; name: string }[];
+  /** Names of every existing tag, for suggestions. */
+  tags: string[];
+};
+
+export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; options: EpisodeFormOptions }) {
   const { state, pending, onSubmit } = useFormAction<EpisodeFormState>(saveEpisodeAction, { status: "idle" });
   const errors = state.status === "error" ? (state.fieldErrors ?? {}) : {};
   const [title, setTitle] = useState(initial.title);
@@ -267,28 +271,53 @@ export function EpisodeForm({
           </Field>
         </FormSection>
 
-        <FormSection title="موضوع‌ها" description="اپیزود در صفحه‌ی هر موضوع انتخاب‌شده فهرست می‌شود.">
-          {topics.length === 0 ? (
-            <p className="text-sm text-ink-subtle">هنوز موضوعی تعریف نشده است.</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {topics.map((topic) => (
-                <label
-                  key={topic.id}
-                  className="cursor-pointer rounded-full border border-line-strong px-3.5 py-1.5 text-sm transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:text-brand-strong has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand/20"
-                >
-                  <input
-                    type="checkbox"
-                    name="topicIds"
-                    value={topic.id}
-                    defaultChecked={initial.topicIds.includes(topic.id)}
-                    className="sr-only"
-                  />
-                  {topic.name}
-                </label>
-              ))}
-            </div>
-          )}
+        <FormSection title="دسته‌بندی" description="دسته برای انتشار لازم است؛ دریچه‌ها و برچسب‌ها اختیاری‌اند.">
+          <Field name="categoryId" label="دسته" required error={errors.categoryId}>
+            {(props) => (
+              <Select {...props} defaultValue={initial.categoryId}>
+                <option value="">— انتخاب دسته —</option>
+                {options.categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 text-sm font-semibold">
+              دریچه‌ها <span className="mr-1.5 text-xs font-normal text-ink-subtle">(اختیاری)</span>
+            </legend>
+            {options.lenses.length === 0 ? (
+              <p className="text-sm text-ink-subtle">هنوز دریچه‌ای تعریف نشده است.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {options.lenses.map((lens) => (
+                  <label
+                    key={lens.id}
+                    className="cursor-pointer rounded-full border border-line-strong px-3.5 py-1.5 text-sm transition-colors has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:text-brand-strong has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand/20"
+                  >
+                    <input
+                      type="checkbox"
+                      name="lensIds"
+                      value={lens.id}
+                      defaultChecked={initial.lensIds.includes(lens.id)}
+                      className="sr-only"
+                    />
+                    {lens.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 text-sm font-semibold">
+              برچسب‌ها <span className="mr-1.5 text-xs font-normal text-ink-subtle">(اختیاری)</span>
+            </legend>
+            <TagInput name="tags" initial={initial.tags} suggestions={options.tags} error={errors.tags} />
+          </fieldset>
         </FormSection>
 
         <FormSection title="تصویر اختصاصی">

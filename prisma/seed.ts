@@ -1,51 +1,34 @@
 /**
- * Seeds the database with the admin account, the default show, and a handful of
- * demo episodes so a fresh clone has something to look at.
+ * Seeds the database with the admin account, the default show, the categories
+ * and lenses, and a handful of demo episodes so a fresh clone has something to
+ * look at.
  *
  * Safe to re-run: everything is upserted by slug.
  */
 import "../src/lib/load-env";
 
+import { normalizeFa, slugify } from "../src/lib/utils";
 import { bootstrap } from "../src/server/bootstrap";
 import { db } from "../src/server/db";
 
-const topics = [
-  {
-    slug: "conflict",
-    name: "تعارض و ارتباط",
-    description: "چطور اختلاف‌ها را به گفت‌وگوی سازنده تبدیل کنیم؟",
-    body: "تعارض در تیم اجتناب‌ناپذیر است؛ چیزی که تیم‌های خوب را از بقیه جدا می‌کند، مهارتِ عبور از تعارض است نه نبودِ آن. در این مجموعه اپیزودها سراغ ریشه‌های روان‌شناختی تعارض، الگوهای تکرارشونده‌ی گفت‌وگو و ابزارهای عملی مذاکره می‌رویم.",
-    sortOrder: 1,
-  },
-  {
-    slug: "focus-and-energy",
-    name: "تمرکز و انرژی",
-    description: "مدیریت هوشمندانه‌ی توجه، زمان و توان ذهنی.",
-    body: "توجه کمیاب‌ترین منبع سازمان است. اینجا از نوروساینسِ تمرکز، هزینه‌ی جابه‌جایی بین کارها و طراحی روزی که با مغز انسان سر جنگ ندارد حرف می‌زنیم.",
-    sortOrder: 2,
-  },
-  {
-    slug: "motivation",
-    name: "انگیزه و عملکرد",
-    description: "چه چیزی آدم‌ها را واقعاً به حرکت درمی‌آورد؟",
-    body: "انگیزه نه با شعار ساخته می‌شود و نه با پاداش صرف. سراغ شواهد تجربی درباره‌ی خودمختاری، شایستگی و معنا می‌رویم و می‌بینیم مدیر چطور می‌تواند محیطی بسازد که انگیزه در آن رشد کند.",
-    sortOrder: 3,
-  },
-  {
-    slug: "clear-thinking",
-    name: "ذهن پالوده",
-    description: "کاهش نویز ذهنی و تصمیم‌گیری روشن‌تر.",
-    body: "ذهن شلوغ، تصمیم‌های بد می‌گیرد. از سوگیری‌های شناختی، بارِ ذهنی و تمرین‌هایی می‌گوییم که دیدِ آدم را نسبت به مسئله تمیز می‌کنند.",
-    sortOrder: 4,
-  },
-  {
-    slug: "resources",
-    name: "مدیریت منابع",
-    description: "تصمیم‌گیری درباره‌ی پول، زمان و آدم‌ها.",
-    body: "هر تصمیم مدیریتی یک تخصیص منابع است. با نگاهی از اقتصاد رفتاری سراغ هزینه‌ی فرصت، ریسک و انتخاب‌های سختِ روزمره می‌رویم.",
-    sortOrder: 5,
-  },
-];
+const categories = [
+  { slug: "self", name: "مواجهه با خود" },
+  { slug: "others", name: "مواجهه با دیگران" },
+  { slug: "work", name: "مواجهه با کار" },
+  { slug: "money", name: "مواجهه با پول" },
+  { slug: "power", name: "مواجهه با قدرت" },
+  { slug: "change", name: "مواجهه با تغییر" },
+  { slug: "meaning", name: "مواجهه با معنا" },
+].map((category, index) => ({ ...category, sortOrder: index + 1 }));
+
+const lenses = [
+  { slug: "psychology", name: "روان‌شناسی" },
+  { slug: "neuroscience", name: "علوم اعصاب" },
+  { slug: "history", name: "تاریخ" },
+  { slug: "economics", name: "اقتصاد" },
+  { slug: "philosophy", name: "فلسفه" },
+  { slug: "sociology", name: "جامعه‌شناسی" },
+].map((lens, index) => ({ ...lens, sortOrder: index + 1 }));
 
 const episodes = [
   {
@@ -69,7 +52,9 @@ const episodes = [
     episodeNumber: 1,
     durationSeconds: 2460,
     featured: true,
-    topics: ["conflict", "clear-thinking"],
+    category: "others",
+    lenses: ["psychology", "neuroscience"],
+    tags: ["تعارض", "گفت\u200cوگوی سخت"],
     daysAgo: 7,
   },
   {
@@ -86,7 +71,9 @@ const episodes = [
 </ul>`,
     episodeNumber: 2,
     durationSeconds: 1980,
-    topics: ["focus-and-energy", "resources"],
+    category: "work",
+    lenses: ["neuroscience", "economics"],
+    tags: ["تمرکز", "بهره\u200cوری"],
     daysAgo: 14,
   },
   {
@@ -100,7 +87,9 @@ const episodes = [
 <p>در ادامه سراغ اشتباه رایج مدیران می‌رویم: تلاش برای «انگیزه دادن» به جای «برداشتن موانع انگیزه».</p>`,
     episodeNumber: 3,
     durationSeconds: 2760,
-    topics: ["motivation", "clear-thinking"],
+    category: "work",
+    lenses: ["psychology"],
+    tags: ["انگیزه"],
     daysAgo: 21,
   },
   {
@@ -117,7 +106,9 @@ const episodes = [
 </ul>`,
     episodeNumber: 4,
     durationSeconds: 1740,
-    topics: ["resources", "clear-thinking"],
+    category: "money",
+    lenses: ["economics"],
+    tags: ["تصمیم\u200cگیری", "هزینه\u200cی فرصت"],
     daysAgo: 28,
   },
   {
@@ -129,7 +120,9 @@ const episodes = [
     showNotes: `<p>در این اپیزود از تفاوت میان فشار و بارِ ذهنی حرف می‌زنیم و اینکه چرا آدم‌های توانمند زودتر می‌سوزند.</p>`,
     episodeNumber: 5,
     durationSeconds: 2100,
-    topics: ["clear-thinking", "focus-and-energy"],
+    category: "self",
+    lenses: ["psychology", "neuroscience"],
+    tags: ["فرسودگی", "تمرکز"],
     daysAgo: 35,
   },
   {
@@ -141,7 +134,9 @@ const episodes = [
     showNotes: `<p>بازخورد زمانی کار می‌کند که شنونده در حالت دفاعی نباشد. سراغ سه خطای رایج و یک ساختار جایگزین می‌رویم.</p>`,
     episodeNumber: 6,
     durationSeconds: 2280,
-    topics: ["conflict", "motivation"],
+    category: "others",
+    lenses: ["psychology"],
+    tags: ["بازخورد", "گفت\u200cوگوی سخت"],
     daysAgo: 42,
   },
 ];
@@ -158,29 +153,34 @@ async function main() {
   const show = await db.show.findFirst({ where: { isDefault: true } });
   if (!show) throw new Error("Default show missing — bootstrap did not run.");
 
-  for (const topic of topics) {
-    await db.topic.upsert({
-      where: { slug: topic.slug },
-      update: {
-        name: topic.name,
-        description: topic.description,
-        body: topic.body,
-        sortOrder: topic.sortOrder,
-      },
-      create: topic,
+  for (const category of categories) {
+    await db.category.upsert({
+      where: { slug: category.slug },
+      update: { name: category.name, sortOrder: category.sortOrder },
+      create: category,
+    });
+  }
+
+  for (const lens of lenses) {
+    await db.lens.upsert({
+      where: { slug: lens.slug },
+      update: { name: lens.name, sortOrder: lens.sortOrder },
+      create: lens,
     });
   }
 
   for (const episode of episodes) {
-    const { topics: topicSlugs, daysAgo, ...rest } = episode;
+    const { category: categorySlug, lenses: lensSlugs, tags: tagNames, daysAgo, ...rest } = episode;
     const publishedAt = new Date(Date.now() - daysAgo * 86400000);
+    const category = await db.category.findUniqueOrThrow({ where: { slug: categorySlug }, select: { id: true } });
 
     const record = await db.episode.upsert({
       where: { slug: episode.slug },
-      update: { ...rest, publishedAt, status: "PUBLISHED" },
+      update: { ...rest, publishedAt, status: "PUBLISHED", categoryId: category.id },
       create: {
         ...rest,
         showId: show.id,
+        categoryId: category.id,
         publishedAt,
         status: "PUBLISHED",
         audioUrl: DEMO_AUDIO,
@@ -189,17 +189,21 @@ async function main() {
       },
     });
 
-    await db.episodeTopic.deleteMany({ where: { episodeId: record.id } });
-    const linked = await db.topic.findMany({
-      where: { slug: { in: topicSlugs } },
-      select: { id: true },
-    });
-    await db.episodeTopic.createMany({
-      data: linked.map((topic) => ({ episodeId: record.id, topicId: topic.id })),
-    });
+    await db.episodeLens.deleteMany({ where: { episodeId: record.id } });
+    const linked = await db.lens.findMany({ where: { slug: { in: lensSlugs } }, select: { id: true } });
+    await db.episodeLens.createMany({ data: linked.map((lens) => ({ episodeId: record.id, lensId: lens.id })) });
+
+    await db.episodeTag.deleteMany({ where: { episodeId: record.id } });
+    for (const tagName of tagNames) {
+      const name = normalizeFa(tagName);
+      const tag = await db.tag.upsert({ where: { name }, update: {}, create: { name, slug: slugify(name) } });
+      await db.episodeTag.create({ data: { episodeId: record.id, tagId: tag.id } });
+    }
   }
 
-  console.info(`[seed] ${topics.length} topics and ${episodes.length} episodes ready.`);
+  console.info(
+    `[seed] ${categories.length} categories, ${lenses.length} lenses and ${episodes.length} episodes ready.`,
+  );
 }
 
 main()

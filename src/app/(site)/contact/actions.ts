@@ -20,9 +20,11 @@ export async function submitInquiry(
   _previous: InquiryFormState,
   formData: FormData,
 ): Promise<InquiryFormState> {
-  const values = Object.fromEntries(
+  const values: Record<string, string> = Object.fromEntries(
     FIELD_NAMES.map((field) => [field, String(formData.get(field) ?? "")]),
   );
+  // Echoed only, so the checkbox survives a failed submit; validated below.
+  values.consent = String(formData.get("consent") ?? "");
 
   // Honeypot: a field hidden from people but filled in by naive bots. Pretend
   // success so the bot has no signal to adapt to.

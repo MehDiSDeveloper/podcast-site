@@ -18,7 +18,7 @@ import {
   podcastSeriesSchema,
 } from "@/lib/structured-data";
 import { sanitizeHtml } from "@/lib/sanitize";
-import { formatDate, formatDurationLabel, toFaDigits, toISODate, truncate } from "@/lib/utils";
+import { decodeSlug, formatDate, formatDurationLabel, toFaDigits, toISODate, truncate } from "@/lib/utils";
 import {
   getAllPublishedEpisodes,
   getEpisodeBySlug,
@@ -36,7 +36,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps<"/episodes/[slug]">): Promise<Metadata> {
-  const { slug } = await params;
+  const slug = decodeSlug((await params).slug);
   const episode = await getEpisodeBySlug(slug);
 
   if (!episode) return { title: "اپیزود پیدا نشد" };
@@ -63,15 +63,20 @@ export async function generateMetadata({ params }: PageProps<"/episodes/[slug]">
 }
 
 export default async function EpisodePage({ params }: PageProps<"/episodes/[slug]">) {
-  const { slug } = await params;
+  const slug = decodeSlug((await params).slug);
   const episode = await getEpisodeBySlug(slug);
 
   if (!episode) notFound();
 
-  const topics = episode.topics.map((link) => link.topic);
-  const related = await getRelatedEpisodes(
-    episode.id,
-    topics.map((topic) => topic.id),
+  const lenses = episode.lenses.map((link) => link.lens);
+  const tags = episode.tags.map((link) => link.tag);
+  const related = await getRelatedEpisodes({
+    id: episode.id,
+    categoryId: episode.category?.id ?? null,
+    tagIds: tags.map((tag) => tag.id),
+  });
+  const keywords = [episode.category?.name, ...lenses.map((lens) => lens.name), ...tags.map((tag) => tag.name)].filter(
+    (name): name is string => Boolean(name),
   );
   const track = toPlayerTrack(episode);
   const url = `${siteConfig.url}/episodes/${episode.slug}`;
@@ -82,7 +87,7 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
         data={graph(
           personSchema(),
           podcastSeriesSchema(),
-          podcastEpisodeSchema({ ...episode, topics }),
+          podcastEpisodeSchema({ ...episode, keywords }),
           breadcrumbSchema([
             { name: "خانه", path: "/" },
             { name: "اپیزودها", path: "/episodes" },
@@ -92,7 +97,7 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
       />
 
       <article>
-        <header className="border-b border-line bg-surface">
+        <header className="border-b border-line">
           <div className="container-page py-10 md:py-14">
             <nav aria-label="مسیر صفحه" className="mb-8">
               <ol className="flex flex-wrap items-center gap-1.5 text-sm text-ink-subtle">
@@ -115,6 +120,14 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
             </nav>
 
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-subtle">
+              {episode.category ? (
+                <Link
+                  href={`/categories/${episode.category.slug}`}
+                  className="rounded-full bg-brand-soft px-3 py-1 font-semibold text-brand-strong transition-colors hover:bg-brand hover:text-brand-contrast"
+                >
+                  {episode.category.name}
+                </Link>
+              ) : null}
               {episode.episodeNumber ? (
                 <span className="nums inline-flex items-center gap-1.5 font-semibold text-brand-strong">
                   <Hash className="size-4" aria-hidden="true" />
@@ -149,26 +162,48 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
               </a>
             </div>
 
-            {topics.length > 0 ? (
-              <ul className="mt-8 flex flex-wrap gap-2">
-                {topics.map((topic) => (
-                  <li key={topic.slug}>
-                    <Link
-                      href={`/topics/${topic.slug}`}
-                      className="inline-block rounded-full border border-line bg-canvas px-3.5 py-1.5 text-sm font-medium text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
-                    >
-                      {topic.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            {lenses.length > 0 || tags.length > 0 ? (
+              <div className="mt-8 flex flex-col gap-3">
+                {lenses.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="text-ink-subtle">از دریچه‌ی</span>
+                    <ul className="flex flex-wrap gap-2">
+                      {lenses.map((lens) => (
+                        <li key={lens.slug}>
+                          <Link
+                            href={`/episodes?lens=${encodeURIComponent(lens.slug)}`}
+                            className="inline-block rounded-full border border-line bg-canvas px-3.5 py-1.5 font-medium text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
+                          >
+                            {lens.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {tags.length > 0 ? (
+                  <ul className="flex flex-wrap gap-2 text-sm" aria-label="برچسب‌ها">
+                    {tags.map((tag) => (
+                      <li key={tag.slug}>
+                        <Link
+                          href={`/tags/${tag.slug}`}
+                          className="inline-block rounded-full px-2 py-1 text-ink-subtle transition-colors hover:text-brand-strong"
+                        >
+                          #{tag.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </header>
 
         <div className="container-page grid gap-12 py-12 md:py-16 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="min-w-0">
-            <div className="rich-text max-w-2xl text-[1.0625rem]">
+            {/* Long-form reading sits on glass so the backdrop never fights the text. */}
+            <div className="glass rich-text max-w-2xl rounded-3xl p-6 text-[1.0625rem] md:p-10">
               <p className="text-xl leading-loose text-ink">{episode.description}</p>
               {episode.showNotes ? (
                 <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(episode.showNotes) }} />
@@ -176,7 +211,7 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
             </div>
 
             {episode.transcript ? (
-              <details className="mt-12 max-w-2xl rounded-2xl border border-line bg-surface p-6">
+              <details className="glass mt-8 max-w-2xl rounded-2xl p-6">
                 <summary className="cursor-pointer text-lg font-bold">متن کامل اپیزود</summary>
                 <div className="rich-text mt-6 text-base">
                   {episode.transcript.split("\n\n").map((paragraph, index) => (
@@ -192,27 +227,25 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
           <aside className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
             <SubscribeStrip />
 
-            <div className="rounded-2xl border border-line bg-brand-soft p-6">
-              <h2 className="text-lg font-bold text-brand-strong">این موضوع برای تیم شما آشناست؟</h2>
-              <p className="mt-2.5 text-sm leading-loose text-ink-muted">
-                همین بحث‌ها را به شکل کارگاه، کوچینگ تیمی یا مشاوره‌ی سازمانی هم اجرا می‌کنم.
-              </p>
-              <Link href="/contact" className={buttonStyles({ className: "mt-5 w-full" })}>
-                شروع گفت‌وگو
+            {/* A quiet pointer only — the offer itself lives on /collaborate. */}
+            <p className="px-1 text-sm leading-loose text-ink-subtle">
+              این مسئله در سازمان شما هم هست؟{" "}
+              <Link href="/collaborate" className="font-semibold text-ink-muted underline underline-offset-4 hover:text-brand-strong">
+                درباره‌ی همکاری
               </Link>
-            </div>
+            </p>
           </aside>
         </div>
 
         {related.length > 0 ? (
-          <section aria-labelledby="related-heading" className="border-t border-line bg-surface">
+          <section aria-labelledby="related-heading" className="border-t border-line">
             <div className="container-page py-14 md:py-20">
               <h2 id="related-heading" className="text-2xl md:text-3xl">
                 اپیزودهای مرتبط
               </h2>
               <ul className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {related.map((item) => (
-                  <li key={item.id} className="flex">
+                  <li key={item.id} className="reveal flex">
                     <EpisodeCard episode={item} className="w-full" />
                   </li>
                 ))}

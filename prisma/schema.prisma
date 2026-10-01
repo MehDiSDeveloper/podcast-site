@@ -139,18 +139,27 @@ model Episode {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  show   Show           @relation(fields: [showId], references: [id], onDelete: Cascade)
-  topics EpisodeTopic[]
+  /// Required before publishing; drafts may leave it empty.
+  categoryId String?
+
+  show     Show          @relation(fields: [showId], references: [id], onDelete: Cascade)
+  /// Restrict: a category that still has episodes cannot be deleted.
+  category Category?     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  lenses   EpisodeLens[]
+  tags     EpisodeTag[]
 
   @@index([showId])
+  @@index([categoryId])
   @@index([status, publishedAt])
   @@index([featured])
   @@map("episodes")
 }
 
-/// Shared taxonomy. Articles and videos will join onto the same topics later,
-/// which is what makes topic pages work as long-lived SEO pillar pages.
-model Topic {
+// ------------------------------------------------------------ taxonomy
+
+/// Primary theme — exactly one per published episode. Category pages are the
+/// site's long-lived SEO pillar pages.
+model Category {
   id          String  @id @default(cuid())
   slug        String  @unique
   name        String
@@ -167,21 +176,64 @@ model Topic {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  episodes EpisodeTopic[]
+  episodes Episode[]
 
-  @@map("topics")
+  @@map("categories")
 }
 
-model EpisodeTopic {
+/// The discipline an episode looks through (psychology, history…). Filter only,
+/// no public page.
+model Lens {
+  id        String @id @default(cuid())
+  slug      String @unique
+  name      String
+  sortOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodes EpisodeLens[]
+
+  @@map("lenses")
+}
+
+/// Free-form keywords, created on the fly from the episode form. Names are
+/// stored normalized (see normalizeFa) and unique, so «كار» and «کار» are one tag.
+model Tag {
+  id   String @id @default(cuid())
+  slug String @unique
+  name String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  episodes EpisodeTag[]
+
+  @@map("tags")
+}
+
+model EpisodeLens {
   episodeId String
-  topicId   String
+  lensId    String
 
   episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-  topic   Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  lens    Lens    @relation(fields: [lensId], references: [id], onDelete: Cascade)
 
-  @@id([episodeId, topicId])
-  @@index([topicId])
-  @@map("episode_topics")
+  @@id([episodeId, lensId])
+  @@index([lensId])
+  @@map("episode_lenses")
+}
+
+model EpisodeTag {
+  episodeId String
+  tagId     String
+
+  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([episodeId, tagId])
+  @@index([tagId])
+  @@map("episode_tags")
 }
 
 // ------------------------------------------------------------ business
@@ -204,8 +256,10 @@ model Inquiry {
   timeline          String?
   message           String
 
-  /// NEW | READ | REPLIED | ARCHIVED
+  /// NEW | READ | REPLIED | REJECTED | ARCHIVED
   status      String  @default("NEW")
+  /// Favourites list; independent of status.
+  starred     Boolean @default(false)
   /// Private admin-only notes.
   adminNotes  String?
 
@@ -222,6 +276,7 @@ model Inquiry {
   readAt    DateTime?
 
   @@index([status, createdAt])
+  @@index([starred, createdAt])
   @@index([ipHash, createdAt])
   @@map("inquiries")
 }

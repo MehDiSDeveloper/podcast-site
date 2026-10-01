@@ -23,31 +23,32 @@ export const EPISODE_TYPE_LABELS: Record<EpisodeType, string> = {
 };
 
 export const COLLABORATION_TYPES = [
+  "CONSULTING",
   "COACHING_INDIVIDUAL",
   "COACHING_TEAM",
   "WORKSHOP",
-  "CONSULTING",
   "SPEAKING",
   "OTHER",
 ] as const;
 export type CollaborationType = (typeof COLLABORATION_TYPES)[number];
 
 export const COLLABORATION_TYPE_LABELS: Record<CollaborationType, string> = {
-  COACHING_INDIVIDUAL: "کوچینگ فردی مدیران",
-  COACHING_TEAM: "کوچینگ تیمی",
-  WORKSHOP: "کارگاه و دوره‌ی آموزشی",
-  CONSULTING: "مشاوره‌ی سازمانی",
-  SPEAKING: "سخنرانی در رویداد",
-  OTHER: "موضوع دیگر",
+  COACHING_INDIVIDUAL: "همراهی فردی",
+  COACHING_TEAM: "کار با تیم",
+  WORKSHOP: "کارگاه",
+  CONSULTING: "مسئله‌ی سازمانی",
+  SPEAKING: "سخنرانی",
+  OTHER: "هنوز مطمئن نیستم",
 };
 
-export const INQUIRY_STATUSES = ["NEW", "READ", "REPLIED", "ARCHIVED"] as const;
+export const INQUIRY_STATUSES = ["NEW", "READ", "REPLIED", "REJECTED", "ARCHIVED"] as const;
 export type InquiryStatus = (typeof INQUIRY_STATUSES)[number];
 
 export const INQUIRY_STATUS_LABELS: Record<InquiryStatus, string> = {
   NEW: "جدید",
   READ: "خوانده‌شده",
   REPLIED: "پاسخ داده‌شده",
+  REJECTED: "ردشده",
   ARCHIVED: "بایگانی",
 };
 

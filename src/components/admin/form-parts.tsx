@@ -4,6 +4,7 @@ import { CheckCircle2, Trash2 } from "lucide-react";
 import { startTransition, useActionState, type FormEvent, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
 /**
@@ -120,5 +121,40 @@ export function Checkbox({ name, label, defaultChecked, hint }: { name: string; 
         {hint ? <span className="block text-xs text-ink-subtle">{hint}</span> : null}
       </span>
     </label>
+  );
+}
+
+/**
+ * Field with a per-form id prefix, keeping the submitted `name` unchanged.
+ * Needed when several copies of one form (e.g. inline edit rows) share a page.
+ */
+export function PrefixedField({
+  prefix,
+  name,
+  children,
+  ...rest
+}: Omit<Parameters<typeof Field>[0], "children"> & {
+  prefix: string;
+  children: Parameters<typeof Field>[0]["children"];
+}) {
+  return (
+    <Field name={`${prefix}-${name}`} {...rest}>
+      {(props) => children({ ...props, name })}
+    </Field>
+  );
+}
+
+/** Success/info banner driven by a query flag after a redirecting action. */
+export function Notice({ tone = "success", children }: { tone?: "success" | "danger"; children: ReactNode }) {
+  return (
+    <p
+      role={tone === "success" ? "status" : "alert"}
+      className={cn(
+        "mb-6 rounded-xl border px-4 py-3 text-sm font-medium",
+        tone === "success" ? "border-success/30 bg-success/10 text-success" : "border-danger/30 bg-danger-soft text-danger",
+      )}
+    >
+      {children}
+    </p>
   );
 }

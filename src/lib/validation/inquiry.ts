@@ -35,8 +35,9 @@ export const inquirySchema = z.object({
     .trim()
     .max(30)
     .optional()
-    .transform((value) => (value ? value : undefined))
-    .refine((value) => !value || /^[+\d\s()\-۰-۹]{7,30}$/.test(value), {
+    // Persian/Arabic digits become Latin so tel: links and search work.
+    .transform((value) => (value ? value.replace(/[۰-۹٠-٩]/g, (digit) => String(digit.charCodeAt(0) % 16)) : undefined))
+    .refine((value) => !value || /^[+\d\s()\-]{7,30}$/.test(value), {
       message: "شماره‌ی تماس معتبر نیست.",
     }),
 

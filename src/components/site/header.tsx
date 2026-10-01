@@ -1,10 +1,11 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { Menu, Rss, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { usePlayer } from "@/components/player/player-provider";
 import { ThemeToggle } from "@/components/site/theme-toggle";
 import { buttonStyles } from "@/components/ui/button";
 import { mainNav, siteConfig } from "@/config/site";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 export function Header() {
   const pathname = usePathname();
+  const { isPlaying } = usePlayer();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -54,8 +56,9 @@ export function Header() {
       className={cn(
         "sticky top-0 z-50 border-b transition-colors duration-300",
         scrolled
-          ? "border-line bg-canvas/85 backdrop-blur-xl supports-[backdrop-filter]:bg-canvas/75"
-          : "border-transparent bg-canvas",
+          ? "glass-bar border-line"
+          : "border-transparent bg-transparent",
+        open && "glass-bar",
       )}
     >
       <div className="container-page flex h-18 items-center justify-between gap-4">
@@ -65,11 +68,15 @@ export function Header() {
         >
           <span
             aria-hidden="true"
-            className="grid size-9 place-items-center rounded-lg bg-brand text-brand-contrast transition-transform duration-300 group-hover:rotate-[-8deg]"
+            data-playing={isPlaying}
+            className="glow-brand grid size-9 place-items-center rounded-lg bg-brand text-brand-contrast transition-transform duration-300 group-hover:rotate-[-8deg]"
           >
             {/* Sound-wave mark, drawn inline so the logo needs no asset. */}
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M5 10v4M9.5 6.5v11M14.5 8.5v7M19 10.5v3" />
+              <path className="eq-bar" d="M5 10v4" />
+              <path className="eq-bar" d="M9.5 6.5v11" />
+              <path className="eq-bar" d="M14.5 8.5v7" />
+              <path className="eq-bar" d="M19 10.5v3" />
             </svg>
           </span>
           {siteConfig.name}
@@ -96,8 +103,9 @@ export function Header() {
 
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
-          <Link href="/contact" className={buttonStyles({ size: "sm", className: "hidden sm:inline-flex" })}>
-            دعوت به همکاری
+          <Link href="/#subscribe" className={buttonStyles({ size: "sm", className: "hidden sm:inline-flex" })}>
+            <Rss className="size-4" aria-hidden="true" />
+            دنبال‌کردن پادکست
           </Link>
           <button
             type="button"
@@ -116,7 +124,7 @@ export function Header() {
       <div
         id="mobile-nav"
         hidden={!open}
-        className="border-t border-line bg-canvas md:hidden"
+        className="border-t border-line md:hidden"
       >
         <nav aria-label="فهرست موبایل" className="container-page flex flex-col gap-1 py-4">
           {mainNav.map((item) => (
@@ -132,8 +140,9 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          <Link href="/contact" className={buttonStyles({ className: "mt-2 w-full" })}>
-            دعوت به همکاری
+          <Link href="/#subscribe" className={buttonStyles({ className: "mt-2 w-full" })}>
+            <Rss className="size-4" aria-hidden="true" />
+            دنبال‌کردن پادکست
           </Link>
         </nav>
       </div>

@@ -16,7 +16,7 @@ export function Footer() {
   const year = new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(new Date());
 
   return (
-    <footer className="mt-auto border-t border-line bg-surface">
+    <footer className="glass-bar mt-auto border-t border-line">
       <div className="container-page grid gap-10 py-14 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <p className="text-lg font-extrabold">{siteConfig.name}</p>

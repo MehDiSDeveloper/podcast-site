@@ -1,5 +1,5 @@
 import { OG_CONTENT_TYPE, OG_SIZE, renderOgImage } from "@/lib/og";
-import { formatDurationLabel, toFaDigits } from "@/lib/utils";
+import { decodeSlug, formatDurationLabel, toFaDigits } from "@/lib/utils";
 import { getEpisodeBySlug } from "@/server/episodes";
 import { siteConfig } from "@/config/site";
 
@@ -8,7 +8,7 @@ export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+  const slug = decodeSlug((await params).slug);
   const episode = await getEpisodeBySlug(slug);
 
   if (!episode) {

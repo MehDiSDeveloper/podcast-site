@@ -30,7 +30,7 @@ export const siteConfig = {
     name: "مهدی",
     /** Headline used on the home hero and in Person structured data. */
     role: "کوچ، مدرس و مشاور توسعه‌ی فردی و سازمانی",
-    email: "hello@example.com",
+    email: "mahdii.montazeri@gmail.com",
     /**
      * Real, verifiable credentials (degrees, certifications, notable clients).
      * Left empty on purpose: the About page hides this section until it has
@@ -66,7 +66,7 @@ export const siteConfig = {
     language: "fa-IR",
     copyright: `© ${new Date().getFullYear()} زاویه`,
     ownerName: "مهدی",
-    ownerEmail: "hello@example.com",
+    ownerEmail: "mahdii.montazeri@gmail.com",
     /** 1400×1400 to 3000×3000 square artwork, served from /public. */
     artwork: "/podcast-artwork.png",
   },
@@ -74,9 +74,9 @@ export const siteConfig = {
 
 export const mainNav: NavItem[] = [
   { href: "/episodes", label: "اپیزودها" },
-  { href: "/topics", label: "موضوع‌ها" },
-  { href: "/collaborate", label: "همکاری با من" },
+  { href: "/categories", label: "دسته‌ها" },
   { href: "/about", label: "درباره‌ی من" },
+  { href: "/collaborate", label: "همکاری" },
 ];
 
 export const footerNav: NavItem[] = [

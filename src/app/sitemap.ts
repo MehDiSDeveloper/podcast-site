@@ -2,19 +2,19 @@ import type { MetadataRoute } from "next";
 
 import { siteConfig } from "@/config/site";
 import { getAllPublishedEpisodes } from "@/server/episodes";
-import { getTopics } from "@/server/topics";
+import { getCategories, getTags } from "@/server/taxonomy";
 
-/** Regenerated hourly, and on demand when the admin publishes. */
-export const revalidate = 3600;
+/** Built per request, for the reason described in src/app/feed.xml/route.ts. */
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [episodes, topics] = await Promise.all([getAllPublishedEpisodes(), getTopics()]);
+  const [episodes, categories, tags] = await Promise.all([getAllPublishedEpisodes(), getCategories(), getTags()]);
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${siteConfig.url}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${siteConfig.url}/episodes`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${siteConfig.url}/topics`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteConfig.url}/categories`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteConfig.url}/collaborate`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${siteConfig.url}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteConfig.url}/contact`, lastModified: now, changeFrequency: "yearly", priority: 0.8 },
@@ -28,11 +28,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
-    ...topics.map((topic) => ({
-      url: `${siteConfig.url}/topics/${topic.slug}`,
-      lastModified: topic.updatedAt,
+    ...categories.map((category) => ({
+      url: `${siteConfig.url}/categories/${category.slug}`,
+      lastModified: category.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.6,
+    })),
+    ...tags.map((tag) => ({
+      url: `${siteConfig.url}/tags/${tag.slug}`,
+      lastModified: tag.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
     })),
   ];
 }

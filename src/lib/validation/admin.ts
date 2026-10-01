@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { INQUIRY_STATUSES } from "@/lib/enums";
+import { normalizeFa } from "@/lib/utils";
 
 const optionalText = (max: number) =>
   z
@@ -10,16 +11,43 @@ const optionalText = (max: number) =>
     .optional()
     .transform((value) => value || undefined);
 
-export const topicSchema = z.object({
-  name: z.string().trim().min(2, { message: "نام موضوع دست‌کم دو نویسه باشد." }).max(80),
+/** Taxonomy names are normalized so «كار» and «کار» never become two entries. */
+const termName = z
+  .string()
+  .transform(normalizeFa)
+  .pipe(z.string().min(2, { message: "نام دست‌کم دو نویسه باشد." }).max(80, { message: "حداکثر ۸۰ نویسه مجاز است." }));
+
+const sortOrder = z.coerce.number().int().min(0).max(9999).catch(0);
+
+export const categorySchema = z.object({
+  name: termName,
   slug: optionalText(80),
   description: optionalText(200),
   body: optionalText(20_000),
-  sortOrder: z.coerce.number().int().min(0).max(9999).catch(0),
+  accentColor: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => value || undefined)
+    .refine((value) => value === undefined || /^#[0-9a-f]{6}$/i.test(value), { message: "رنگ معتبر نیست." }),
+  sortOrder,
   seoTitle: optionalText(120),
   seoDescription: optionalText(300),
 });
-export type TopicInput = z.infer<typeof topicSchema>;
+export type CategoryInput = z.infer<typeof categorySchema>;
+
+export const lensSchema = z.object({
+  name: termName,
+  slug: optionalText(80),
+  sortOrder,
+});
+export type LensInput = z.infer<typeof lensSchema>;
+
+export const tagSchema = z.object({
+  name: termName,
+  slug: optionalText(80),
+});
+export type TagInput = z.infer<typeof tagSchema>;
 
 export const inquiryUpdateSchema = z.object({
   status: z.enum(INQUIRY_STATUSES),

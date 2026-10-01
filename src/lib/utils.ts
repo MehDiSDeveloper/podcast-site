@@ -11,10 +11,38 @@ export function slugify(input: string): string {
   return input
     .trim()
     .toLowerCase()
-    .replace(/[‌\s_]+/g, "-")
+    .replace(/[\u200C\s_]+/g, "-")
     .replace(/[^\p{L}\p{N}-]+/gu, "")
     .replace(/-{2,}/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Canonical form for Persian names typed by hand: Arabic ي/ى/ك become Persian
+ * ی/ک, and runs of whitespace (including stray zero-width non-joiners next to
+ * spaces) collapse to one space. Tags are matched on this form, so the same
+ * word typed on an Arabic keyboard does not create a duplicate.
+ */
+export function normalizeFa(input: string): string {
+  return input
+    .replace(/[\u064A\u0649]/g, "\u06CC")
+    .replace(/\u0643/g, "\u06A9")
+    .replace(/\u200C{2,}/g, "\u200C")
+    .replace(/\u200C?\s+\u200C?/g, " ")
+    .replace(/^\u200C+|\u200C+$/g, "")
+    .trim();
+}
+
+/**
+ * Route params arrive percent-encoded when the URL has non-ASCII characters,
+ * so a Persian slug must be decoded before it is looked up.
+ */
+export function decodeSlug(slug: string): string {
+  try {
+    return decodeURIComponent(slug);
+  } catch {
+    return slug;
+  }
 }
 
 const FA_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
@@ -68,6 +96,21 @@ const persianDate = new Intl.DateTimeFormat("fa-IR", {
 /** Jalali display date. Uses the platform ICU — no date library needed. */
 export function formatDate(date: Date | string): string {
   return persianDate.format(typeof date === "string" ? new Date(date) : date);
+}
+
+// The server runs in UTC; the owner reads times in Tehran.
+const persianDateTime = new Intl.DateTimeFormat("fa-IR", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Asia/Tehran",
+});
+
+/** Jalali date and Tehran time, e.g. «۲۸ شهریور ۱۴۰۵، ۱۳:۵۱». */
+export function formatDateTime(date: Date | string): string {
+  return persianDateTime.format(typeof date === "string" ? new Date(date) : date);
 }
 
 /** Machine-readable date for <time dateTime> and structured data. */

@@ -11,7 +11,7 @@ import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "تماس و دعوت به همکاری",
-  description: `برای کوچینگ فردی یا تیمی، کارگاه آموزشی، مشاوره‌ی سازمانی یا سخنرانی با ${siteConfig.author.name} در تماس باشید.`,
+  description: `برای همکاری با ${siteConfig.author.name} در مسئله‌های سازمانی، همراهی فردی، کار با تیم، کارگاه یا سخنرانی.`,
   alternates: { canonical: "/contact" },
   openGraph: { title: `تماس و دعوت به همکاری | ${siteConfig.name}`, url: "/contact" },
 };
@@ -36,9 +36,9 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
       />
 
       <PageHeader
-        eyebrow="دعوت به همکاری"
-        title="بیایید درباره‌ی تیم شما حرف بزنیم"
-        lead="چند خط درباره‌ی مسئله‌ای که با آن روبه‌رو هستید بنویسید. بعد از خواندن، برای یک گفت‌وگوی کوتاه و بدون تعهد تماس می‌گیرم تا ببینیم همکاری منطقی است یا نه."
+        eyebrow="همکاری"
+        title="درباره‌ی مسئله‌تان بنویسید"
+        lead="لازم نیست دقیق یا کامل باشد؛ همین که روشن شود چه می‌گذرد کافی است. هر پیام با دقت خوانده می‌شود و پاسخ می‌گیرد."
       />
 
       <div className="container-page grid gap-12 py-12 md:py-16 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -47,34 +47,18 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
         </div>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-line bg-surface p-6">
-            <h2 className="text-base font-bold">بعد از ارسال چه اتفاقی می‌افتد؟</h2>
-            <ol className="mt-4 flex flex-col gap-4 text-sm leading-loose text-ink-muted">
-              <li className="flex gap-3">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand-strong">
-                  ۱
-                </span>
-                درخواست را با دقت می‌خوانم.
-              </li>
-              <li className="flex gap-3">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand-strong">
-                  ۲
-                </span>
-                برای یک گفت‌وگوی ۲۰ دقیقه‌ای رایگان هماهنگ می‌کنیم.
-              </li>
-              <li className="flex gap-3">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand-strong">
-                  ۳
-                </span>
-                اگر همکاری منطقی بود، پیشنهاد مشخص با دامنه و هزینه ارسال می‌کنم.
-              </li>
-            </ol>
+          <div className="glass spotlight rounded-2xl p-6">
+            <h2 className="text-base font-bold">بعد از ارسال</h2>
+            <p className="mt-3 text-sm leading-loose text-ink-muted">
+              اگر به نظر برسد همکاری معنا دارد، برای یک گفت‌وگو هماهنگ می‌شود. اگر نه، همین صادقانه گفته
+              می‌شود — و اگر ممکن باشد، همراه با معرفی کسی که مناسب‌تر است.
+            </p>
           </div>
 
-          <ul className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-6 text-sm">
+          <ul className="flex flex-col gap-3 glass rounded-2xl p-6 text-sm">
             <li className="flex items-center gap-3 text-ink-muted">
               <Clock className="size-4.5 shrink-0 text-brand" aria-hidden="true" />
-              پاسخ ظرف دو روز کاری
+              پاسخ، معمولاً ظرف چند روز کاری
             </li>
             <li className="flex items-center gap-3 text-ink-muted">
               <ShieldCheck className="size-4.5 shrink-0 text-brand" aria-hidden="true" />
