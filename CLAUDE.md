@@ -4,6 +4,15 @@
 
 Persian (RTL) podcast + personal-brand site aimed at hiring managers. Next.js 16, React 19, Prisma 7 (SQLite), Tailwind 4, Zod 4.
 
+## Principles (apply to every change)
+
+- **Simple code:** the simplest solution that works; no needless abstraction or complexity.
+- **Scalable:** structure code and data so they grow without rewrites.
+- **Consistent, high-quality UX:** every screen behaves and looks like the rest of the product.
+- **Clean, beautiful UI:** minimal, friendly, self-explanatory, following proven global patterns.
+- **Short user paths:** fewest steps and clicks to finish a task; cut any step that isn't needed.
+- **Stay on task:** do only what the task needs; no unrelated extras unless truly required.
+
 ## Running — Docker only
 
 Never run `npm run dev` / `next start` on the host.
