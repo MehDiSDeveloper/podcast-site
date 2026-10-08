@@ -1,8 +1,8 @@
 /**
  * Single source of truth for brand, metadata and podcast feed identity.
  *
- * NOTE: `name`, `nameLatin` and `tagline` are placeholders. Change them here
- * once and every page title, OG tag, RSS channel and JSON-LD block follows.
+ * Change a value here once and every page title, OG tag, RSS channel and
+ * JSON-LD block follows; the default show row is re-synced on every start.
  */
 
 export type NavItem = {
@@ -13,11 +13,11 @@ export type NavItem = {
 };
 
 export const siteConfig = {
-  name: "زاویه",
-  nameLatin: "Zavieh",
-  tagline: "زاویه‌ی تازه به مسائل آدم‌ها در کار و زندگی",
+  name: "درشان",
+  nameLatin: "Darshan",
+  tagline: "جور دیگر دیدنِ خود، آدم‌ها و زندگی",
   description:
-    "پادکستی درباره‌ی حل مسئله‌های واقعی انسان‌ها در محیط کار و زندگی؛ با نگاهی از دل روان‌شناسی، علوم اعصاب، فلسفه، تاریخ و اقتصاد.",
+    "پادکستی درباره‌ی مسئله‌های واقعی آدم‌ها و نگاهی تازه به آن‌ها؛ از دل روان‌شناسی، علوم اعصاب، فلسفه، تاریخ و اقتصاد.",
 
   /** Public origin. Set NEXT_PUBLIC_SITE_URL in production for correct canonicals. */
   url: (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, ""),
@@ -27,7 +27,7 @@ export const siteConfig = {
   direction: "rtl" as const,
 
   author: {
-    name: "مهدی",
+    name: "مهدی منتظری",
     /** Headline used on the home hero and in Person structured data. */
     role: "کوچ، مدرس و مشاور توسعه‌ی فردی و سازمانی",
     email: "mahdii.montazeri@gmail.com",
@@ -64,8 +64,8 @@ export const siteConfig = {
     itunesSubcategory: "Self-Improvement",
     explicit: false,
     language: "fa-IR",
-    copyright: `© ${new Date().getFullYear()} زاویه`,
-    ownerName: "مهدی",
+    copyright: `© ${new Date().getFullYear()} درشان`,
+    ownerName: "مهدی منتظری",
     ownerEmail: "mahdii.montazeri@gmail.com",
     /** 1400×1400 to 3000×3000 square artwork, served from /public. */
     artwork: "/podcast-artwork.png",
