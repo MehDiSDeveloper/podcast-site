@@ -10,18 +10,14 @@ import { SubscribeStrip } from "@/components/site/subscribe-strip";
 import { buttonStyles } from "@/components/ui/button";
 import { disciplines, problemAreas } from "@/config/services";
 import { siteConfig } from "@/config/site";
-import {
-  graph,
-  personSchema,
-  podcastSeriesSchema,
-  websiteSchema,
-} from "@/lib/structured-data";
+import { feedAlternate } from "@/lib/seo";
+import { graph, personSchema, podcastSeriesSchema, websiteSchema } from "@/lib/structured-data";
 import { formatDate, formatDurationLabel, toFaDigits, toISODate } from "@/lib/utils";
 import { getFeaturedEpisode, getLatestEpisodes, toPlayerTrack } from "@/server/episodes";
 import { getCategories } from "@/server/taxonomy";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  alternates: { canonical: "/", types: feedAlternate },
 };
 
 /**
@@ -144,6 +140,7 @@ export default async function HomePage() {
         <section aria-labelledby="latest-heading" className="border-b border-line">
           <div className="container-page py-16 md:py-24">
             <SectionHeading
+              id="latest-heading"
               title="تازه‌ترین اپیزودها"
               description="از هر کدام می‌توانید شروع کنید؛ اپیزودها به هم وابسته نیستند."
               action={
@@ -156,10 +153,6 @@ export default async function HomePage() {
                 </Link>
               }
             />
-
-            <h2 id="latest-heading" className="sr-only">
-              تازه‌ترین اپیزودها
-            </h2>
 
             <ul className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {recent.map((episode) => (
@@ -176,12 +169,10 @@ export default async function HomePage() {
       <section aria-labelledby="problems-heading" className="border-b border-line">
         <div className="container-page py-16 md:py-24">
           <SectionHeading
+            id="problems-heading"
             title="این پادکست سراغ چه چیزی می‌رود؟"
             description="سه دسته مسئله که در هر سازمانی تکرار می‌شوند و کمتر ریشه‌ای به آن‌ها پرداخته می‌شود."
           />
-          <h2 id="problems-heading" className="sr-only">
-            مسئله‌های اصلی
-          </h2>
 
           <ul className="mt-10 grid gap-6 md:grid-cols-3">
             {problemAreas.map((area, index) => (
@@ -202,12 +193,10 @@ export default async function HomePage() {
         <section aria-labelledby="categories-heading" className="border-b border-line">
           <div className="container-page py-16 md:py-24">
             <SectionHeading
+              id="categories-heading"
               title="بر اساس دسته بگردید"
               description="هر دسته، مجموعه‌ای از اپیزودهایی است که یک مواجهه را از زوایای مختلف باز می‌کنند."
             />
-            <h2 id="categories-heading" className="sr-only">
-              دسته‌ها
-            </h2>
 
             <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {categories.map((category) => (

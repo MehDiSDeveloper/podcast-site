@@ -35,11 +35,14 @@ export function PageHeader({
 
 /** Section opener used inside pages, with an optional trailing action. */
 export function SectionHeading({
+  id,
   title,
   description,
   action,
   className,
 }: {
+  /** Lets the enclosing section point aria-labelledby at this heading. */
+  id?: string;
   title: string;
   description?: string;
   action?: ReactNode;
@@ -49,7 +52,9 @@ export function SectionHeading({
     <div className={cn("flex flex-wrap items-end justify-between gap-4", className)}>
       <div>
         <span className="title-rule mb-4" aria-hidden="true" />
-        <h2 className="text-2xl md:text-3xl">{title}</h2>
+        <h2 id={id} className="text-2xl md:text-3xl">
+          {title}
+        </h2>
         {description ? <p className="mt-2 max-w-xl text-ink-muted">{description}</p> : null}
       </div>
       {action}
