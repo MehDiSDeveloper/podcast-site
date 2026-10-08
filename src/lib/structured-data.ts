@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site";
+import { absoluteUrl as absolute } from "@/lib/seo";
 
 /**
  * JSON-LD builders.
@@ -9,9 +10,6 @@ import { siteConfig } from "@/config/site";
  * `partOfSeries`), Person for the author, and a BreadcrumbList everywhere so
  * the site hierarchy is explicit.
  */
-
-const absolute = (path: string) =>
-  path.startsWith("http") ? path : `${siteConfig.url}${path.startsWith("/") ? path : `/${path}`}`;
 
 export const PERSON_ID = `${siteConfig.url}/#person`;
 export const SERIES_ID = `${siteConfig.url}/#podcast`;

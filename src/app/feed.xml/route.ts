@@ -1,5 +1,6 @@
 import { siteConfig } from "@/config/site";
 import { htmlToText } from "@/lib/sanitize";
+import { absoluteUrl as absolute } from "@/lib/seo";
 import { formatDuration } from "@/lib/utils";
 import { getAllPublishedEpisodes } from "@/server/episodes";
 import { db } from "@/server/db";
@@ -99,10 +100,6 @@ ${items}
       "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
     },
   });
-}
-
-function absolute(path: string): string {
-  return path.startsWith("http") ? path : `${siteConfig.url}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 function escape(value: string): string {
