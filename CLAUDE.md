@@ -1,7 +1,8 @@
 @AGENTS.md
 
-# Podcast site
+# Podcast site: درشان (Darshan)
 
+The podcast and site are named **درشان / Darshan**, same as the domain https://darshan.ir (the old placeholder name «زاویه» is gone).
 Persian (RTL) podcast + personal-brand site aimed at hiring managers. Next.js 16, React 19, Prisma 7 (SQLite), Tailwind 4, Zod 4.
 
 ## Principles (apply to every change)
@@ -43,6 +44,7 @@ The image is built without the production database — it is on a mounted disk a
 - Only `src/server/*` (all `server-only`) touches Prisma. Pages and server actions call it.
 - Zod schemas in `src/lib/validation` are shared by client and server. Status-like columns are strings (SQLite has no enums); allowed values live in `src/lib/enums.ts`.
 - Brand, links and the service offering come from `src/config/` — never hardcode them.
+- The default `Show` row (the RSS channel: title, author, description…) is re-synced from `siteConfig` on every start (`ensureDefaultShow` in `src/server/bootstrap.ts`), so edit the feed identity in config, not in the DB.
 - Admin mutations call `revalidatePublicContent()` (`src/server/revalidate.ts`).
 - `src/proxy.ts` (Next 16's renamed middleware) only checks a cookie exists; real auth is `requireUser()` in the `(panel)` layout and in every server action/route handler. Route handlers must also check `Origin` (no built-in CSRF like server actions).
 
@@ -107,6 +109,7 @@ ssh vps "cd /srv/podcast-site && docker compose ps && docker compose logs --tail
   it adds demo episodes.
 - Liara is no longer used. `liara.json` and `docs/deploy-liara.md` are legacy.
 - One-off commands: `ssh vps "cd /srv/podcast-site && docker compose exec -T web <cmd>"`.
+- RSS feed for directories (Castbox, Apple…): `https://darshan.ir/feed.xml`. Directories need at least one published episode with audio before they accept it.
 
 ## Deploying
 
