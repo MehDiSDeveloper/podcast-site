@@ -6,16 +6,16 @@ import { PageHeader } from "@/components/site/page-header";
 import { services } from "@/config/services";
 import { siteConfig } from "@/config/site";
 import { COLLABORATION_TYPES, type CollaborationType } from "@/lib/enums";
+import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, graph, personSchema, professionalServiceSchema } from "@/lib/structured-data";
 
 import { ContactForm } from "../contact/contact-form";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "همکاری",
   description: `شیوه‌های همکاری با ${siteConfig.author.name}: مسئله‌های سازمانی، همراهی فردی، کار با تیم، کارگاه و سخنرانی.`,
-  alternates: { canonical: "/collaborate" },
-  openGraph: { title: `همکاری | ${siteConfig.name}`, url: "/collaborate" },
-};
+  path: "/collaborate",
+});
 
 /**
  * Two things only: the ways of working, then the invitation form. Each card

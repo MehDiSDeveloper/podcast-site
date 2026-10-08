@@ -4,16 +4,16 @@ import Link from "next/link";
 import { JsonLd } from "@/components/seo/json-ld";
 import { PageHeader } from "@/components/site/page-header";
 import { siteConfig } from "@/config/site";
+import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, graph, websiteSchema } from "@/lib/structured-data";
 import { toFaDigits } from "@/lib/utils";
 import { getCategories } from "@/server/taxonomy";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "دسته‌ها",
   description: `دسته‌های اصلی پادکست ${siteConfig.name}؛ هر دسته یک مواجهه، با اپیزودهایی که آن را از زوایای مختلف باز می‌کنند.`,
-  alternates: { canonical: "/categories" },
-  openGraph: { title: `دسته‌ها | ${siteConfig.name}`, url: "/categories" },
-};
+  path: "/categories",
+});
 
 /** Per request, not at build time — see the note in src/app/(site)/page.tsx. */
 export const dynamic = "force-dynamic";

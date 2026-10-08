@@ -3,6 +3,7 @@ import { Vazirmatn } from "next/font/google";
 
 import { ThemeScript } from "@/components/theme-script";
 import { siteConfig } from "@/config/site";
+import { feedAlternate } from "@/lib/seo";
 
 import "./globals.css";
 
@@ -24,10 +25,8 @@ export const metadata: Metadata = {
   authors: [{ name: siteConfig.author.name }],
   creator: siteConfig.author.name,
   publisher: siteConfig.name,
-  alternates: {
-    canonical: "/",
-    types: { "application/rss+xml": [{ url: "/feed.xml", title: `${siteConfig.name} — فید پادکست` }] },
-  },
+  // No canonical here: it would be inherited by the 404 page. Each page sets its own.
+  alternates: { types: feedAlternate },
   openGraph: {
     type: "website",
     locale: siteConfig.locale,
@@ -36,16 +35,11 @@ export const metadata: Metadata = {
     title: `${siteConfig.name} — ${siteConfig.tagline}`,
     description: siteConfig.description,
   },
-  twitter: {
-    card: "summary_large_image",
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
-  },
+  // Title and description fall back to the og: tags, so inner pages never show the home page's.
+  twitter: { card: "summary_large_image" },
+  // Indexing is the default. Spelling out "index, follow" here contradicted the
+  // `noindex` Next adds to 404 responses.
+  robots: { googleBot: { "max-image-preview": "large", "max-snippet": -1 } },
   formatDetection: { telephone: false },
 };
 

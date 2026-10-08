@@ -9,7 +9,6 @@ import { EpisodeCard } from "@/components/site/episode-card";
 import { ShareRow } from "@/components/site/share-row";
 import { SubscribeStrip } from "@/components/site/subscribe-strip";
 import { buttonStyles } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
 import {
   breadcrumbSchema,
   graph,
@@ -18,6 +17,7 @@ import {
   podcastSeriesSchema,
 } from "@/lib/structured-data";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { absoluteUrl, pageMetadata } from "@/lib/seo";
 import { decodeSlug, formatDate, formatDurationLabel, toFaDigits, toISODate, truncate } from "@/lib/utils";
 import {
   getAllPublishedEpisodes,
@@ -41,25 +41,15 @@ export async function generateMetadata({ params }: PageProps<"/episodes/[slug]">
 
   if (!episode) return { title: "اپیزود پیدا نشد" };
 
-  const title = episode.seoTitle || episode.title;
-  const description = episode.seoDescription || truncate(episode.description, 160);
-  const url = `/episodes/${episode.slug}`;
-
-  return {
-    title,
-    description,
-    alternates: { canonical: url },
-    openGraph: {
-      type: "article",
-      title,
-      description,
-      url,
-      publishedTime: episode.publishedAt ? toISODate(episode.publishedAt) : undefined,
-      authors: [siteConfig.author.name],
-      ...(episode.coverImage ? { images: [{ url: episode.coverImage }] } : {}),
-    },
-    twitter: { card: "summary_large_image", title, description },
-  };
+  // Without a cover, the share image is this route's own opengraph-image.tsx.
+  return pageMetadata({
+    title: episode.seoTitle || episode.title,
+    description: episode.seoDescription || truncate(episode.description, 160),
+    path: `/episodes/${episode.slug}`,
+    type: "article",
+    image: episode.coverImage ?? false,
+    publishedTime: episode.publishedAt?.toISOString(),
+  });
 }
 
 export default async function EpisodePage({ params }: PageProps<"/episodes/[slug]">) {
@@ -79,7 +69,7 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
     (name): name is string => Boolean(name),
   );
   const track = toPlayerTrack(episode);
-  const url = `${siteConfig.url}/episodes/${episode.slug}`;
+  const url = absoluteUrl(`/episodes/${episode.slug}`);
 
   return (
     <>

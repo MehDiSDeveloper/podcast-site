@@ -7,6 +7,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { EpisodeCard } from "@/components/site/episode-card";
 import { PageHeader } from "@/components/site/page-header";
 import { siteConfig } from "@/config/site";
+import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, collectionPageSchema, graph, personSchema } from "@/lib/structured-data";
 import { decodeSlug, toFaDigits } from "@/lib/utils";
 import { getEpisodes } from "@/server/episodes";
@@ -26,12 +27,7 @@ export async function generateMetadata({ params }: PageProps<"/tags/[slug]">): P
   const title = `اپیزودهای «${tag.name}»`;
   const description = `همه‌ی اپیزودهای ${siteConfig.name} با برچسب «${tag.name}».`;
 
-  return {
-    title,
-    description,
-    alternates: { canonical: `/tags/${tag.slug}` },
-    openGraph: { title, description, url: `/tags/${tag.slug}` },
-  };
+  return pageMetadata({ title, description, path: `/tags/${tag.slug}` });
 }
 
 export default async function TagPage({ params }: PageProps<"/tags/[slug]">) {

@@ -5,16 +5,16 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { PageHeader } from "@/components/site/page-header";
 import { siteConfig } from "@/config/site";
 import { COLLABORATION_TYPES, type CollaborationType } from "@/lib/enums";
+import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, graph, personSchema } from "@/lib/structured-data";
 
 import { ContactForm } from "./contact-form";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "تماس و دعوت به همکاری",
   description: `برای همکاری با ${siteConfig.author.name} در مسئله‌های سازمانی، همراهی فردی، کار با تیم، کارگاه یا سخنرانی.`,
-  alternates: { canonical: "/contact" },
-  openGraph: { title: `تماس و دعوت به همکاری | ${siteConfig.name}`, url: "/contact" },
-};
+  path: "/contact",
+});
 
 export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
   const { type } = await searchParams;

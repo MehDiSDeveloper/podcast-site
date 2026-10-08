@@ -7,14 +7,15 @@ import { PageHeader } from "@/components/site/page-header";
 import { buttonStyles } from "@/components/ui/button";
 import { disciplines } from "@/config/services";
 import { siteConfig } from "@/config/site";
+import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, graph, personSchema } from "@/lib/structured-data";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "درباره‌ی من",
   description: `${siteConfig.author.name}، ${siteConfig.author.role}. درباره‌ی رویکرد، پیشینه و نگاهی که پشت پادکست ${siteConfig.name} است.`,
-  alternates: { canonical: "/about" },
-  openGraph: { title: `درباره‌ی من | ${siteConfig.name}`, url: "/about", type: "profile" },
-};
+  path: "/about",
+  type: "profile",
+});
 
 const principles = [
   {

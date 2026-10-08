@@ -8,6 +8,7 @@ import { EpisodeCard } from "@/components/site/episode-card";
 import { PageHeader } from "@/components/site/page-header";
 import { SubscribeStrip } from "@/components/site/subscribe-strip";
 import { siteConfig } from "@/config/site";
+import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, collectionPageSchema, graph, personSchema } from "@/lib/structured-data";
 import { decodeSlug, toFaDigits, truncate } from "@/lib/utils";
 import { getEpisodes } from "@/server/episodes";
@@ -33,12 +34,7 @@ export async function generateMetadata({ params }: PageProps<"/categories/[slug]
     category.seoDescription ||
     truncate(category.description ?? category.body ?? `اپیزودهای ${siteConfig.name} در دسته‌ی ${category.name}.`, 160);
 
-  return {
-    title,
-    description,
-    alternates: { canonical: `/categories/${category.slug}` },
-    openGraph: { title, description, url: `/categories/${category.slug}` },
-  };
+  return pageMetadata({ title, description, path: `/categories/${category.slug}` });
 }
 
 export default async function CategoryPage({ params }: PageProps<"/categories/[slug]">) {
