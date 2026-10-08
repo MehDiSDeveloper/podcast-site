@@ -52,29 +52,42 @@ async function ensureAdminUser(): Promise<void> {
   }
 }
 
+/**
+ * Creates the default show, then keeps its feed identity in step with
+ * `siteConfig` on every start. There is no admin screen for the show, so the
+ * config is the only place it is edited; without this a rename would never
+ * reach an existing database (and the RSS channel title).
+ */
 async function ensureDefaultShow(): Promise<void> {
+  const data = {
+    title: siteConfig.name,
+    subtitle: siteConfig.tagline,
+    description: siteConfig.description,
+    author: siteConfig.author.name,
+    ownerName: siteConfig.podcast.ownerName,
+    ownerEmail: siteConfig.podcast.ownerEmail,
+    language: siteConfig.podcast.language,
+    category: siteConfig.podcast.itunesCategory,
+    subcategory: siteConfig.podcast.itunesSubcategory,
+    explicit: siteConfig.podcast.explicit,
+    copyright: siteConfig.podcast.copyright,
+    coverImage: siteConfig.podcast.artwork,
+  };
+
   const existing = await db.show.findFirst({ where: { isDefault: true } });
-  if (existing) return;
+  if (existing) {
+    const changed = (Object.keys(data) as (keyof typeof data)[]).some((key) => existing[key] !== data[key]);
+    if (changed) {
+      await db.show.update({ where: { id: existing.id }, data });
+      console.info("[bootstrap] re-synced default show from site config.");
+    }
+    return;
+  }
 
   await db.show.upsert({
     where: { slug: DEFAULT_SHOW_SLUG },
-    update: { isDefault: true },
-    create: {
-      slug: DEFAULT_SHOW_SLUG,
-      title: siteConfig.name,
-      subtitle: siteConfig.tagline,
-      description: siteConfig.description,
-      author: siteConfig.author.name,
-      ownerName: siteConfig.podcast.ownerName,
-      ownerEmail: siteConfig.podcast.ownerEmail,
-      language: siteConfig.podcast.language,
-      category: siteConfig.podcast.itunesCategory,
-      subcategory: siteConfig.podcast.itunesSubcategory,
-      explicit: siteConfig.podcast.explicit,
-      copyright: siteConfig.podcast.copyright,
-      coverImage: siteConfig.podcast.artwork,
-      isDefault: true,
-    },
+    update: { ...data, isDefault: true },
+    create: { ...data, slug: DEFAULT_SHOW_SLUG, isDefault: true },
   });
   console.info("[bootstrap] created default show.");
 }
