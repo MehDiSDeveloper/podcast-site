@@ -9,27 +9,39 @@ import { PageHeader } from "@/components/site/page-header";
 import { Pagination } from "@/components/site/pagination";
 import { buttonStyles } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
+import { feedAlternate, pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, collectionPageSchema, graph, podcastSeriesSchema } from "@/lib/structured-data";
 import { cn, toFaDigits } from "@/lib/utils";
 import { getEpisodes } from "@/server/episodes";
 import { getCategories, getLenses, getTagBySlug } from "@/server/taxonomy";
 
-export const metadata: Metadata = {
-  title: "همه‌ی اپیزودها",
-  description: `آرشیو کامل اپیزودهای ${siteConfig.name}؛ جست‌وجو و فیلتر بر اساس دسته، دریچه، برچسب، عنوان یا محتوای اپیزود.`,
-  alternates: { canonical: "/episodes" },
-  openGraph: {
-    title: `همه‌ی اپیزودها | ${siteConfig.name}`,
-    description: `آرشیو کامل اپیزودهای ${siteConfig.name}.`,
-    url: "/episodes",
-  },
-};
+const readOne = (value: string | string[] | undefined) =>
+  (Array.isArray(value) ? value[0] : value)?.trim() || undefined;
+
+/**
+ * Plain pages of the archive are indexed, each under its own canonical URL.
+ * Searches, filters and the reversed sort only reshuffle the same episodes, so
+ * they stay out of the index (their links are still followed); the category
+ * and tag pages are the indexable form of those filters.
+ */
+export async function generateMetadata({ searchParams }: PageProps<"/episodes">): Promise<Metadata> {
+  const params = await searchParams;
+  const page = Math.max(1, Number(readOne(params.page) ?? 1) || 1);
+  const isVariant = ["search", "category", "lens", "tag", "sort"].some((key) => readOne(params[key]));
+
+  const metadata = pageMetadata({
+    title: page > 1 ? `همه‌ی اپیزودها، صفحه‌ی ${toFaDigits(page)}` : "همه‌ی اپیزودها",
+    description: `آرشیو کامل اپیزودهای ${siteConfig.name}؛ جست‌وجو و فیلتر بر اساس دسته، دریچه، برچسب، عنوان یا محتوای اپیزود.`,
+    path: page > 1 ? `/episodes?page=${page}` : "/episodes",
+  });
+
+  return isVariant
+    ? { ...metadata, alternates: { types: feedAlternate }, robots: { index: false, follow: true } }
+    : metadata;
+}
 
 export default async function EpisodesPage({ searchParams }: PageProps<"/episodes">) {
   const params = await searchParams;
-
-  const readOne = (value: string | string[] | undefined) =>
-    (Array.isArray(value) ? value[0] : value)?.trim() || undefined;
 
   const search = readOne(params.search);
   const category = readOne(params.category);
