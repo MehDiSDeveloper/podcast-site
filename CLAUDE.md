@@ -46,6 +46,8 @@ The image is built without the production database — it is on a mounted disk a
 - Brand, links and the service offering come from `src/config/` — never hardcode them.
 - The default `Show` row (the RSS channel: title, author, description…) is re-synced from `siteConfig` on every start (`ensureDefaultShow` in `src/server/bootstrap.ts`), so edit the feed identity in config, not in the DB.
 - Admin mutations call `revalidatePublicContent()` (`src/server/revalidate.ts`).
+- Public page metadata is built with `pageMetadata()` (`src/lib/seo.ts`). Next replaces `openGraph`, `twitter` and `alternates` whole instead of merging them, so a hand-written object drops the share image, site name and RSS link. Site URLs go through `absoluteUrl()` so Persian slugs are percent-encoded.
+- SEO of `/episodes`: `?page=N` is indexed with its own canonical; search, filter and sort variants are `noindex, follow`.
 - `src/proxy.ts` (Next 16's renamed middleware) only checks a cookie exists; real auth is `requireUser()` in the `(panel)` layout and in every server action/route handler. Route handlers must also check `Origin` (no built-in CSRF like server actions).
 
 ## Gotchas
