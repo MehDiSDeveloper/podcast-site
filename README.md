@@ -41,7 +41,7 @@ The admin account from `.env` is created (or repaired) on **every server start**
 prisma/                  schema, migrations, seed
 src/
   app/
-    (site)/              public pages — home, episodes, categories, tags, collaborate, about, contact
+    (site)/              public pages — home, episodes, categories, tags, collaborate, about
     (admin)/admin/       login + (panel) with dashboard, episodes, categories, lenses, tags, inquiries, account
     api/                 upload + play-count endpoints
     uploads/[...path]/   serves uploaded media with HTTP Range support
@@ -58,13 +58,13 @@ Layering: pages and actions call `src/server/*`; only that layer touches Prisma.
 
 | Path | Purpose |
 | --- | --- |
-| `/` | Positioning, featured episode, problem areas, latest episodes, services |
+| `/` | Positioning, featured episode, latest episodes, how an episode works, categories |
 | `/episodes` · `/episodes/[slug]` | Searchable archive · episode page with player, show notes, related episodes |
 | `/categories` · `/categories/[slug]` | Category hubs (SEO pillars) |
 | `/tags/[slug]` | Episodes with a tag |
-| `/collaborate` | Services for organisations, process, FAQ |
+| `/collaborate` | Ways of working together and the inquiry form (`?type=WORKSHOP#invite` preselects one) |
 | `/about` | Background and approach |
-| `/contact` | Collaboration inquiry form (`?type=WORKSHOP` preselects a service) |
+| `/contact` | Permanent redirect to `/collaborate#invite` |
 | `/feed.xml` · `/sitemap.xml` | Podcast feed · sitemap |
 
 ## Customising

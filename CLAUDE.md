@@ -9,7 +9,7 @@ Persian (RTL) podcast + personal-brand site. Next.js 16, React 19, Prisma 7 (SQL
 («یک چیزی درست نیست») as a clear problem they can act on and follow up, at work or anywhere else in life.
 It is **not** a workplace/organisational podcast: no copy aimed at managers, teams-at-work or companies.
 Episodes are one numbered list; there are **no seasons** (the column was dropped).
-The offer (`src/config/services.ts`) is individual and group conversations, a problem-framing workshop and talks; the contact form asks no company/role/team-size (those columns stay only for old inquiries).
+The offer (`src/config/services.ts`) is individual and group conversations, a problem-framing workshop and talks; the inquiry form lives only on `/collaborate#invite` (`/contact` redirects there) and asks no company/role/team-size (those columns stay only for old inquiries).
 
 ## Principles (apply to every change)
 

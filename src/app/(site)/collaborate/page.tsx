@@ -9,7 +9,7 @@ import { COLLABORATION_TYPES, type CollaborationType } from "@/lib/enums";
 import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, graph, personSchema, professionalServiceSchema } from "@/lib/structured-data";
 
-import { ContactForm } from "../contact/contact-form";
+import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = pageMetadata({
   title: "همکاری",
@@ -80,10 +80,21 @@ export default async function CollaboratePage({ searchParams }: PageProps<"/coll
         <div className="container-page py-14 md:py-20">
           <div className="mx-auto max-w-3xl">
             <h2 id="invite-heading" className="text-2xl md:text-3xl">
-              دعوت به همکاری
+              از موقعیت‌تان بنویسید
             </h2>
             <p className="mt-3 leading-loose text-ink-muted">
-              چند خط درباره‌ی موقعیتی که در آن هستید بنویسید؛ لازم نیست مسئله را دقیق بدانید. هر پیام با دقت خوانده می‌شود و پاسخ می‌گیرد.
+              لازم نیست مسئله را دقیق بدانید؛ پیدا کردنش بخشی از همین کار است. هر پیام با دقت خوانده می‌شود و
+              معمولاً ظرف چند روز پاسخ می‌گیرد. اگر همکاری معنا نداشته باشد، همین صادقانه گفته می‌شود.
+            </p>
+            <p className="mt-2 text-sm text-ink-subtle">
+              یا مستقیم بنویسید به{" "}
+              <a
+                href={`mailto:${siteConfig.author.email}`}
+                className="font-medium text-ink-muted transition-colors hover:text-brand-strong"
+                dir="ltr"
+              >
+                {siteConfig.author.email}
+              </a>
             </p>
             <div className="mt-10">
               {/* Keyed so a card click remounts the form with the new preselection. */}

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * URLs go through absoluteUrl so Persian slugs are percent-encoded, as the
  * sitemap protocol requires. `lastModified` is only given where it is real:
  * the pages that list episodes change when the newest episode does, and the
- * fixed pages (about, contact…) have no honest date, so they carry none
+ * fixed pages (about, collaborate…) have no honest date, so they carry none
  * rather than claiming to change on every crawl.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -27,7 +27,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/categories"), lastModified: latest, changeFrequency: "monthly", priority: 0.7 },
     { url: absoluteUrl("/collaborate"), changeFrequency: "monthly", priority: 0.9 },
     { url: absoluteUrl("/about"), changeFrequency: "monthly", priority: 0.7 },
-    { url: absoluteUrl("/contact"), changeFrequency: "yearly", priority: 0.8 },
   ];
 
   return [

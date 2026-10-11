@@ -40,11 +40,6 @@ export function Footer() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link href="/contact" className="text-ink-muted transition-colors hover:text-brand-strong">
-                تماس و دعوت به همکاری
-              </Link>
-            </li>
           </ul>
         </nav>
 

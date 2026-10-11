@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
 
+  // The contact form now lives on /collaborate; ?type=… is carried over.
+  async redirects() {
+    return [{ source: "/contact", destination: "/collaborate#invite", permanent: true }];
+  },
+
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

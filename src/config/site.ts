@@ -8,8 +8,6 @@
 export type NavItem = {
   href: string;
   label: string;
-  /** Shown in the footer sitemap column, hidden from the primary header nav. */
-  secondary?: boolean;
 };
 
 export const siteConfig = {
@@ -77,12 +75,6 @@ export const mainNav: NavItem[] = [
   { href: "/categories", label: "دسته‌ها" },
   { href: "/about", label: "درباره‌ی من" },
   { href: "/collaborate", label: "همکاری" },
-];
-
-export const footerNav: NavItem[] = [
-  ...mainNav,
-  { href: "/contact", label: "تماس و دعوت به همکاری", secondary: true },
-  { href: "/feed.xml", label: "فید RSS", secondary: true },
 ];
 
 export type SiteConfig = typeof siteConfig;
