@@ -113,7 +113,6 @@ model Episode {
   transcript  String?
 
   episodeNumber Int?
-  seasonNumber  Int?
   /// full | trailer | bonus
   episodeType   String @default("full")
 

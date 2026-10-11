@@ -75,7 +75,6 @@ export function podcastEpisodeSchema(episode: {
   audioMimeType: string;
   coverImage?: string | null;
   episodeNumber?: number | null;
-  seasonNumber?: number | null;
   transcript?: string | null;
   /** Category, lens and tag names, emitted as keywords. */
   keywords?: string[];
@@ -91,7 +90,6 @@ export function podcastEpisodeSchema(episode: {
     inLanguage: siteConfig.podcast.language,
     ...(episode.publishedAt ? { datePublished: episode.publishedAt.toISOString() } : {}),
     ...(episode.episodeNumber ? { episodeNumber: episode.episodeNumber } : {}),
-    ...(episode.seasonNumber ? { seasonNumber: episode.seasonNumber } : {}),
     ...(episode.coverImage ? { image: absolute(episode.coverImage) } : { image: absolute(siteConfig.podcast.artwork) }),
     ...(episode.keywords?.length ? { keywords: episode.keywords.join("، ") } : {}),
     ...(episode.transcript ? { transcript: episode.transcript } : {}),

@@ -49,7 +49,6 @@ export const episodeSchema = z
     coverImage: mediaUrl("آدرس تصویر معتبر نیست.").transform((value) => value || undefined),
 
     episodeNumber: optionalInt,
-    seasonNumber: optionalInt,
     episodeType: z.enum(EPISODE_TYPES),
     status: z.enum(EPISODE_STATUSES),
     publishedAt: z

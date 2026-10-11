@@ -28,7 +28,6 @@ const listSelect = {
   audioUrl: true,
   durationSeconds: true,
   episodeNumber: true,
-  seasonNumber: true,
   publishedAt: true,
   featured: true,
   category: { select: { slug: true, name: true } },

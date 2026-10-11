@@ -32,7 +32,6 @@ export type EpisodeFormValues = {
   durationSeconds: number;
   coverImage: string;
   episodeNumber: number | null;
-  seasonNumber: number | null;
   episodeType: string;
   status: string;
   publishedAt: string | null;
@@ -254,21 +253,18 @@ export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; 
             <Field name="episodeNumber" label="شماره" error={errors.episodeNumber}>
               {(props) => <Input {...props} type="number" min={1} dir="ltr" defaultValue={initial.episodeNumber ?? ""} />}
             </Field>
-            <Field name="seasonNumber" label="فصل" error={errors.seasonNumber}>
-              {(props) => <Input {...props} type="number" min={1} dir="ltr" defaultValue={initial.seasonNumber ?? ""} />}
+            <Field name="episodeType" label="نوع" required error={errors.episodeType}>
+              {(props) => (
+                <Select {...props} defaultValue={initial.episodeType}>
+                  {EPISODE_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {EPISODE_TYPE_LABELS[type]}
+                    </option>
+                  ))}
+                </Select>
+              )}
             </Field>
           </div>
-          <Field name="episodeType" label="نوع" required error={errors.episodeType}>
-            {(props) => (
-              <Select {...props} defaultValue={initial.episodeType}>
-                {EPISODE_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {EPISODE_TYPE_LABELS[type]}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Field>
         </FormSection>
 
         <FormSection title="دسته‌بندی" description="دسته برای انتشار لازم است؛ دریچه‌ها و برچسب‌ها اختیاری‌اند.">

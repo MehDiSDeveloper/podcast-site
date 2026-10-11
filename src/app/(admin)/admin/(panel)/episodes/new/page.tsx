@@ -27,7 +27,6 @@ export default async function NewEpisodePage() {
     coverImage: "",
     // Suggest the next number so a routine publish needs one less field.
     episodeNumber: (last?.episodeNumber ?? 0) + 1,
-    seasonNumber: null,
     episodeType: "full",
     status: "DRAFT",
     publishedAt: null,

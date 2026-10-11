@@ -57,7 +57,6 @@ export async function GET() {
       <itunes:explicit>${episode.explicit ? "true" : "false"}</itunes:explicit>
       <itunes:episodeType>${escape(episode.episodeType)}</itunes:episodeType>
       ${episode.episodeNumber ? `<itunes:episode>${episode.episodeNumber}</itunes:episode>` : ""}
-      ${episode.seasonNumber ? `<itunes:season>${episode.seasonNumber}</itunes:season>` : ""}
       ${episode.coverImage ? `<itunes:image href="${escape(absolute(episode.coverImage))}" />` : ""}
       ${[episode.category?.name, ...episode.tags.map((link) => link.tag.name)]
         .filter((name): name is string => Boolean(name))

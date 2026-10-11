@@ -93,7 +93,6 @@ export async function saveEpisode(input: EpisodeInput, id?: string) {
     durationSeconds: input.durationSeconds,
     coverImage: input.coverImage ?? null,
     episodeNumber: input.episodeNumber ?? null,
-    seasonNumber: input.seasonNumber ?? null,
     episodeType: input.episodeType,
     status: input.status,
     publishedAt,

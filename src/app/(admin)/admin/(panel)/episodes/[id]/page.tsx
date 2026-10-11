@@ -64,7 +64,6 @@ export default async function EditEpisodePage({ params, searchParams }: PageProp
           durationSeconds: episode.durationSeconds,
           coverImage: episode.coverImage ?? "",
           episodeNumber: episode.episodeNumber,
-          seasonNumber: episode.seasonNumber,
           episodeType: episode.episodeType,
           status: episode.status,
           publishedAt: episode.publishedAt?.toISOString() ?? null,
