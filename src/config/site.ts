@@ -17,7 +17,7 @@ export const siteConfig = {
   nameLatin: "Darshan",
   tagline: "جور دیگر دیدنِ خود، آدم‌ها و زندگی",
   description:
-    "پادکستی درباره‌ی مسئله‌های واقعی آدم‌ها و نگاهی تازه به آن‌ها؛ از دل روان‌شناسی، علوم اعصاب، فلسفه، تاریخ و اقتصاد.",
+    "پادکستی برای پیدا کردن مسئله‌ی خودمان؛ هر اپیزود موقعیتی آشنا در کار یا زندگی را با کمک روان‌شناسی، علوم اعصاب، فلسفه، تاریخ و اقتصاد صورت‌بندی می‌کند تا به مسئله‌ای برسیم که بشود دنبالش کرد.",
 
   /** Public origin. Set NEXT_PUBLIC_SITE_URL in production for correct canonicals. */
   url: (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, ""),
@@ -29,7 +29,7 @@ export const siteConfig = {
   author: {
     name: "مهدی منتظری",
     /** Headline used on the home hero and in Person structured data. */
-    role: "کوچ، مدرس و مشاور توسعه‌ی فردی و سازمانی",
+    role: "کوچ و مدرس توسعه‌ی فردی",
     email: "mahdii.montazeri@gmail.com",
     /**
      * Real, verifiable credentials (degrees, certifications, notable clients).

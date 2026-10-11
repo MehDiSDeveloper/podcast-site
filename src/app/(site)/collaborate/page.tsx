@@ -13,7 +13,7 @@ import { ContactForm } from "../contact/contact-form";
 
 export const metadata: Metadata = pageMetadata({
   title: "همکاری",
-  description: `شیوه‌های همکاری با ${siteConfig.author.name}: مسئله‌های سازمانی، همراهی فردی، کار با تیم، کارگاه و سخنرانی.`,
+  description: `شیوه‌های همکاری با ${siteConfig.author.name} برای پیدا کردن و صورت‌بندی مسئله: گفت‌وگوی فردی، گفت‌وگوی گروهی، کارگاه و سخنرانی.`,
   path: "/collaborate",
 });
 
@@ -43,7 +43,7 @@ export default async function CollaboratePage({ searchParams }: PageProps<"/coll
       <PageHeader
         eyebrow="همکاری"
         title="شیوه‌های همکاری"
-        lead="در کنار پادکست، تعداد محدودی همکاری با مدیران و سازمان‌ها پذیرفته می‌شود."
+        lead="برای وقتی که می‌خواهید روی موقعیت خودتان کار کنید. در کنار پادکست، تعداد محدودی همکاری پذیرفته می‌شود."
       />
 
       <section aria-labelledby="ways-heading" className="border-b border-line">
@@ -83,7 +83,7 @@ export default async function CollaboratePage({ searchParams }: PageProps<"/coll
               دعوت به همکاری
             </h2>
             <p className="mt-3 leading-loose text-ink-muted">
-              چند خط درباره‌ی مسئله بنویسید. هر پیام با دقت خوانده می‌شود و پاسخ می‌گیرد.
+              چند خط درباره‌ی موقعیتی که در آن هستید بنویسید؛ لازم نیست مسئله را دقیق بدانید. هر پیام با دقت خوانده می‌شود و پاسخ می‌گیرد.
             </p>
             <div className="mt-10">
               {/* Keyed so a card click remounts the form with the new preselection. */}

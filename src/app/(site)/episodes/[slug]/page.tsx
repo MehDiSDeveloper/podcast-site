@@ -219,7 +219,7 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
 
             {/* A quiet pointer only — the offer itself lives on /collaborate. */}
             <p className="px-1 text-sm leading-loose text-ink-subtle">
-              این مسئله در سازمان شما هم هست؟{" "}
+              می‌خواهید روی موقعیت خودتان کار کنید؟{" "}
               <Link href="/collaborate" className="font-semibold text-ink-muted underline underline-offset-4 hover:text-brand-strong">
                 درباره‌ی همکاری
               </Link>

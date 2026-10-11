@@ -41,14 +41,11 @@ export const inquirySchema = z.object({
       message: "شماره‌ی تماس معتبر نیست.",
     }),
 
-  company: optionalText(160),
-  roleTitle: optionalText(120),
 
   collaborationType: z.enum(COLLABORATION_TYPES, {
     message: "لطفاً نوع همکاری را انتخاب کنید.",
   }),
 
-  teamSize: optionalText(40),
   timeline: optionalText(60),
 
   message: z

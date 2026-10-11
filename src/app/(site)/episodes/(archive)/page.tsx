@@ -94,7 +94,7 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
       <PageHeader
         eyebrow="آرشیو"
         title="همه‌ی اپیزودها"
-        lead="هر اپیزود سراغ یک مسئله‌ی مشخص در کار یا زندگی می‌رود. با جست‌وجو، دسته یا دریچه، آنچه را الان لازم دارید پیدا کنید."
+        lead="هر اپیزود یک موقعیت آشنا را تا رسیدن به مسئله‌ای روشن دنبال می‌کند. با جست‌وجو، دسته یا دریچه، آنچه را الان لازم دارید پیدا کنید."
       />
 
       <div className="container-page py-12 md:py-16">

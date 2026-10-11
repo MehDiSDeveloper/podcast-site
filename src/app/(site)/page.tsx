@@ -8,7 +8,7 @@ import { EpisodeCard } from "@/components/site/episode-card";
 import { SectionHeading } from "@/components/site/page-header";
 import { SubscribeStrip } from "@/components/site/subscribe-strip";
 import { buttonStyles } from "@/components/ui/button";
-import { disciplines, problemAreas } from "@/config/services";
+import { approachSteps, disciplines } from "@/config/services";
 import { siteConfig } from "@/config/site";
 import { feedAlternate } from "@/lib/seo";
 import { graph, personSchema, podcastSeriesSchema, websiteSchema } from "@/lib/structured-data";
@@ -59,16 +59,16 @@ export default async function HomePage() {
             </p>
 
             <h1 className="mt-6 text-[2.25rem] leading-[1.4] sm:text-5xl lg:text-[2.625rem] xl:text-5xl">
-              مسئله‌های آدم‌ها در کار،{" "}
+              از «یک چیزی درست نیست»{" "}
               {/* The line break only helps once there is room for each clause. */}
               <br className="hidden sm:block" />
-              از <span className="text-aurora">زاویه‌ای</span> که کمتر دیده می‌شود.
+              تا <span className="text-aurora">مسئله‌ای</span> که بشود دنبالش کرد.
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-loose text-ink-muted">
-              تعارض‌های تکرارشونده، انگیزه‌ای که ته می‌کشد، تصمیم‌هایی که گران تمام می‌شوند — هر
-              اپیزود یک مسئله‌ی واقعی را با شواهدی از روان‌شناسی، علوم اعصاب، فلسفه و اقتصاد باز
-              می‌کند و با چیزی قابل‌اجرا تمام می‌شود.
+              بیشتر وقت‌ها گیر ما نبودِ راه‌حل نیست؛ این است که هنوز نمی‌دانیم مسئله دقیقاً چیست. هر
+              اپیزود یک موقعیت آشنا را، در کار یا هر جای دیگر زندگی، با کمک روان‌شناسی، فلسفه و علوم
+              اعصاب صورت‌بندی می‌کند تا به مسئله‌ای روشن و قدمی قابل‌پیگیری برسیم.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -165,26 +165,26 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {/* ------------------------------------------------------- problem areas */}
-      <section aria-labelledby="problems-heading" className="border-b border-line">
+      {/* ------------------------------------------------------------ approach */}
+      <section aria-labelledby="approach-heading" className="border-b border-line">
         <div className="container-page py-16 md:py-24">
           <SectionHeading
-            id="problems-heading"
-            title="این پادکست سراغ چه چیزی می‌رود؟"
-            description="سه دسته مسئله که در هر سازمانی تکرار می‌شوند و کمتر ریشه‌ای به آن‌ها پرداخته می‌شود."
+            id="approach-heading"
+            title="در هر اپیزود چه می‌گذرد؟"
+            description="مسیری سه‌مرحله‌ای، از موقعیتی مبهم تا مسئله‌ای که بشود رویش کار کرد."
           />
 
-          <ul className="mt-10 grid gap-6 md:grid-cols-3">
-            {problemAreas.map((area, index) => (
-              <li key={area.title} className="reveal glass spotlight rounded-2xl p-7">
+          <ol className="mt-10 grid gap-6 md:grid-cols-3">
+            {approachSteps.map((step, index) => (
+              <li key={step.title} className="reveal glass spotlight rounded-2xl p-7">
                 <span className="nums chip-tint grid size-10 place-items-center rounded-xl text-sm font-bold">
                   {toFaDigits(index + 1)}
                 </span>
-                <h3 className="mt-5 text-lg font-bold">{area.title}</h3>
-                <p className="mt-3 leading-loose text-ink-muted">{area.body}</p>
+                <h3 className="mt-5 text-lg font-bold">{step.title}</h3>
+                <p className="mt-3 leading-loose text-ink-muted">{step.body}</p>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
       </section>
 

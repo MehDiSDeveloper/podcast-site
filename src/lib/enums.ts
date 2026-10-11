@@ -33,9 +33,10 @@ export const COLLABORATION_TYPES = [
 export type CollaborationType = (typeof COLLABORATION_TYPES)[number];
 
 export const COLLABORATION_TYPE_LABELS: Record<CollaborationType, string> = {
-  COACHING_INDIVIDUAL: "همراهی فردی",
-  COACHING_TEAM: "کار با تیم",
-  WORKSHOP: "کارگاه",
+  COACHING_INDIVIDUAL: "گفت‌وگوی فردی",
+  COACHING_TEAM: "گفت‌وگوی گروهی",
+  WORKSHOP: "کارگاه صورت‌بندی مسئله",
+  // No longer offered; kept so older inquiries still have a label.
   CONSULTING: "مسئله‌ی سازمانی",
   SPEAKING: "سخنرانی",
   OTHER: "هنوز مطمئن نیستم",
@@ -51,8 +52,6 @@ export const INQUIRY_STATUS_LABELS: Record<InquiryStatus, string> = {
   REJECTED: "ردشده",
   ARCHIVED: "بایگانی",
 };
-
-export const TEAM_SIZES = ["۱ نفر", "۲ تا ۱۰ نفر", "۱۱ تا ۵۰ نفر", "۵۱ تا ۲۰۰ نفر", "بیش از ۲۰۰ نفر"] as const;
 
 export const TIMELINES = [
   "هرچه زودتر",

@@ -12,7 +12,7 @@ import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = pageMetadata({
   title: "تماس و دعوت به همکاری",
-  description: `برای همکاری با ${siteConfig.author.name} در مسئله‌های سازمانی، همراهی فردی، کار با تیم، کارگاه یا سخنرانی.`,
+  description: `برای گفت‌وگو با ${siteConfig.author.name} درباره‌ی موقعیت خودتان، یا دعوت به کارگاه و سخنرانی.`,
   path: "/contact",
 });
 
@@ -37,8 +37,8 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
 
       <PageHeader
         eyebrow="همکاری"
-        title="درباره‌ی مسئله‌تان بنویسید"
-        lead="لازم نیست دقیق یا کامل باشد؛ همین که روشن شود چه می‌گذرد کافی است. هر پیام با دقت خوانده می‌شود و پاسخ می‌گیرد."
+        title="از موقعیت‌تان بنویسید"
+        lead="لازم نیست بدانید مسئله دقیقاً چیست؛ پیدا کردنش بخشی از همین کار است. هر پیام با دقت خوانده می‌شود و پاسخ می‌گیرد."
       />
 
       <div className="container-page grid gap-12 py-12 md:py-16 lg:grid-cols-[minmax(0,1fr)_20rem]">

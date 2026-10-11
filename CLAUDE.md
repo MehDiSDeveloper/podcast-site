@@ -3,7 +3,13 @@
 # Podcast site: درشان (Darshan)
 
 The podcast and site are named **درشان / Darshan**, same as the domain https://darshan.ir (the old placeholder name «زاویه» is gone).
-Persian (RTL) podcast + personal-brand site aimed at hiring managers. Next.js 16, React 19, Prisma 7 (SQLite), Tailwind 4, Zod 4.
+Persian (RTL) podcast + personal-brand site. Next.js 16, React 19, Prisma 7 (SQLite), Tailwind 4, Zod 4.
+
+**Message (keep all copy consistent with it):** Darshan helps people find their *own* problem and frame a vague situation
+(«یک چیزی درست نیست») as a clear problem they can act on and follow up, at work or anywhere else in life.
+It is **not** a workplace/organisational podcast: no copy aimed at managers, teams-at-work or companies.
+Episodes are one numbered list; there are **no seasons** (the column was dropped).
+The offer (`src/config/services.ts`) is individual and group conversations, a problem-framing workshop and talks; the contact form asks no company/role/team-size (those columns stay only for old inquiries).
 
 ## Principles (apply to every change)
 

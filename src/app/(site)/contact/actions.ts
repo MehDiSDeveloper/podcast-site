@@ -8,10 +8,7 @@ const FIELD_NAMES = [
   "name",
   "email",
   "phone",
-  "company",
-  "roleTitle",
   "collaborationType",
-  "teamSize",
   "timeline",
   "message",
 ] as const;

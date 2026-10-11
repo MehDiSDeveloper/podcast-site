@@ -6,7 +6,8 @@ import { useActionState, useEffect, useRef } from "react";
 
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
-import { COLLABORATION_TYPE_LABELS, COLLABORATION_TYPES, TEAM_SIZES, TIMELINES, type CollaborationType } from "@/lib/enums";
+import { collaborationChoices } from "@/config/services";
+import { COLLABORATION_TYPE_LABELS, TIMELINES, type CollaborationType } from "@/lib/enums";
 import { cn } from "@/lib/utils";
 import type { InquiryFormState } from "@/lib/validation/inquiry";
 
@@ -17,10 +18,7 @@ const DRAFT_FIELDS = [
   "name",
   "email",
   "phone",
-  "company",
-  "roleTitle",
   "collaborationType",
-  "teamSize",
   "timeline",
   "message",
   "consent",
@@ -204,7 +202,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
           aria-invalid={errors.collaborationType ? true : undefined}
           aria-describedby={errors.collaborationType ? "collaborationType-error" : undefined}
         >
-          {COLLABORATION_TYPES.map((type) => (
+          {collaborationChoices.map((type) => (
             <label
               key={type}
               className={cn(
@@ -236,12 +234,12 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
         <Field name="name" label="نام و نام خانوادگی" required error={errors.name}>
           {(props) => <Input {...props} autoComplete="name" defaultValue={values.name} />}
         </Field>
-        <Field name="email" label="ایمیل کاری" required error={errors.email}>
+        <Field name="email" label="ایمیل" required error={errors.email}>
           {(props) => (
             <Input {...props} type="email" dir="ltr" autoComplete="email" inputMode="email" defaultValue={values.email} />
           )}
         </Field>
-        <Field name="phone" label="شماره‌ی تماس" hint="برای هماهنگی سریع‌تر؛ اختیاری." error={errors.phone}>
+        <Field name="phone" label="شماره‌ی تماس" error={errors.phone}>
           {(props) => (
             <Input
               {...props}
@@ -254,26 +252,13 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
             />
           )}
         </Field>
-        <Field name="company" label="نام سازمان" error={errors.company}>
-          {(props) => <Input {...props} autoComplete="organization" defaultValue={values.company} />}
-        </Field>
-        <Field name="roleTitle" label="سمت شما" error={errors.roleTitle}>
+        <Field name="timeline" label="زمان‌بندی" error={errors.timeline}>
           {(props) => (
-            <Input
-              {...props}
-              autoComplete="organization-title"
-              placeholder="مثلاً مدیر منابع انسانی"
-              defaultValue={values.roleTitle}
-            />
-          )}
-        </Field>
-        <Field name="teamSize" label="اندازه‌ی تیم" error={errors.teamSize}>
-          {(props) => (
-            <Select {...props} key={values.teamSize ?? ""} defaultValue={values.teamSize ?? ""}>
+            <Select {...props} key={values.timeline ?? ""} defaultValue={values.timeline ?? ""}>
               <option value="">انتخاب کنید</option>
-              {TEAM_SIZES.map((size) => (
-                <option key={size} value={size}>
-                  {size}
+              {TIMELINES.map((timeline) => (
+                <option key={timeline} value={timeline}>
+                  {timeline}
                 </option>
               ))}
             </Select>
@@ -281,23 +266,10 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
         </Field>
       </div>
 
-      <Field name="timeline" label="زمان‌بندی" error={errors.timeline}>
-        {(props) => (
-          <Select {...props} key={values.timeline ?? ""} defaultValue={values.timeline ?? ""}>
-            <option value="">انتخاب کنید</option>
-            {TIMELINES.map((timeline) => (
-              <option key={timeline} value={timeline}>
-                {timeline}
-              </option>
-            ))}
-          </Select>
-        )}
-      </Field>
-
       <Field
         name="message"
-        label="درباره‌ی مسئله"
-        hint="چه می‌گذرد، از کی، و تا امروز چه چیزهایی امتحان شده است."
+        label="موقعیتی که در آن هستید"
+        hint="لازم نیست بدانید مسئله دقیقاً چیست؛ بنویسید چه می‌گذرد، از کی، و تا امروز چه کرده‌اید."
         required
         error={errors.message}
       >

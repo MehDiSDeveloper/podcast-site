@@ -27,14 +27,19 @@ export function collaborationLabel(type: string): string {
 }
 
 export function inquiryFields(inquiry: InquiryLike): [label: string, value: string | null][] {
+  // The form no longer asks for these; they are shown only on older inquiries that have them.
+  const legacy: [string, string | null][] = [
+    ["سازمان", inquiry.company],
+    ["سمت", inquiry.roleTitle],
+    ["اندازه‌ی تیم", inquiry.teamSize],
+  ];
+
   return [
     ["نوع همکاری", collaborationLabel(inquiry.collaborationType)],
     ["نام", inquiry.name],
     ["ایمیل", inquiry.email],
     ["شماره‌ی تماس", inquiry.phone],
-    ["سازمان", inquiry.company],
-    ["سمت", inquiry.roleTitle],
-    ["اندازه‌ی تیم", inquiry.teamSize],
+    ...legacy.filter(([, value]) => value),
     ["زمان‌بندی", inquiry.timeline],
     ["تاریخ ارسال", formatDateTime(inquiry.createdAt)],
     ["صفحه‌ی مبدأ", inquiry.sourcePath],
