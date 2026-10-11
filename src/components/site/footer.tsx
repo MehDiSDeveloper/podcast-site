@@ -21,13 +21,13 @@ export function Footer() {
         <div>
           <p className="text-lg font-extrabold">{siteConfig.name}</p>
           <p className="mt-3 max-w-sm text-sm leading-loose text-ink-muted">{siteConfig.description}</p>
-          <Link
+          <a
             href="/feed.xml"
             className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-ink-muted transition-colors hover:text-brand-strong"
           >
             <Rss className="size-4" aria-hidden="true" />
             فید RSS پادکست
-          </Link>
+          </a>
         </div>
 
         <nav aria-label="پیوندهای سایت">

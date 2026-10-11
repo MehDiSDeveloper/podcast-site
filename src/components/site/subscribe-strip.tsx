@@ -1,5 +1,4 @@
 import { Rss } from "lucide-react";
-import Link from "next/link";
 
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
@@ -42,13 +41,13 @@ export function SubscribeStrip({ className }: { className?: string }) {
           </li>
         ))}
         <li>
-          <Link
+          <a
             href="/feed.xml"
             className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-canvas px-3.5 py-2 text-sm font-medium transition-colors hover:border-brand hover:text-brand-strong"
           >
             <Rss className="size-4" aria-hidden="true" />
             RSS
-          </Link>
+          </a>
         </li>
       </ul>
     </div>
