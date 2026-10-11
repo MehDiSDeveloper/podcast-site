@@ -122,7 +122,7 @@ export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; 
           <Field
             name="showNotes"
             label="یادداشت‌های اپیزود"
-            hint="HTML ساده: <p>، <h2>، <ul>/<li>، <strong>، <a href>، <blockquote>. لینک به منابع و اپیزودهای مرتبط برای سئو ارزشمند است."
+            hint="HTML ساده: <p>، <h2>، <ul>/<li>، <strong>، <a href>، <blockquote>. زمان‌هایی مثل ۱۲:۳۰ در سایت قابل کلیک می‌شوند و پخش را به همان لحظه می‌برند."
             error={errors.showNotes}
           >
             {(props) => (

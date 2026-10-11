@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
@@ -40,6 +41,8 @@ type PlayerState = {
 type PlayerContextValue = PlayerState & {
   /** Starts a track, or toggles play/pause when it is already loaded. */
   toggleTrack: (track: PlayerTrack) => void;
+  /** Plays a track from a given second, loading it first if needed (show-note timestamps). */
+  playFrom: (track: PlayerTrack, seconds: number) => void;
   togglePlay: () => void;
   seekTo: (seconds: number) => void;
   skipBy: (seconds: number) => void;
@@ -60,6 +63,66 @@ const RESUME_THRESHOLD = 30;
 const RESUME_TAIL_GUARD = 15;
 
 export const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 1.75, 2] as const;
+
+/** Fired whenever a resume point is written, so play buttons can redraw their progress. */
+const POSITION_EVENT = "player:position";
+
+function readSavedPosition(trackId: string): number {
+  try {
+    return Number(localStorage.getItem(POSITION_KEY(trackId))) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function savePosition(trackId: string, seconds: number) {
+  try {
+    localStorage.setItem(POSITION_KEY(trackId), String(Math.floor(seconds)));
+  } catch {
+    // Storage may be unavailable; losing the resume point is acceptable.
+    return;
+  }
+  window.dispatchEvent(new Event(POSITION_EVENT));
+}
+
+function subscribePositions(onChange: () => void) {
+  window.addEventListener(POSITION_EVENT, onChange);
+  // Another tab playing the same episode.
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(POSITION_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+/** Seconds already heard of an episode in this browser; 0 on the server and before hydration. */
+export function useSavedPosition(trackId: string): number {
+  return useSyncExternalStore(subscribePositions, () => readSavedPosition(trackId), () => 0);
+}
+
+/** A saved point this close to the end means the episode has been heard. */
+export function isFinished(position: number, duration: number): boolean {
+  return duration > 0 && position >= duration - RESUME_TAIL_GUARD;
+}
+
+/** Where playback should pick up again, or 0 to start from the top. */
+export function resumePoint(position: number, duration: number): number {
+  return position > RESUME_THRESHOLD && !isFinished(position, duration) ? position : 0;
+}
+
+/** Keeps the lock-screen / notification scrubber in step with the element. */
+function syncPositionState(audio: HTMLAudioElement) {
+  if (!("mediaSession" in navigator) || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+  try {
+    navigator.mediaSession.setPositionState({
+      duration: audio.duration,
+      playbackRate: audio.playbackRate,
+      position: Math.min(audio.currentTime, audio.duration),
+    });
+  } catch {
+    // Older browsers lack setPositionState.
+  }
+}
 
 /** Reports a play once per episode per browser session, fire-and-forget. */
 function countPlay(trackId: string) {
@@ -118,16 +181,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     audio.playbackRate = state.playbackRate;
   }, [state.volume, state.isMuted, state.playbackRate, state.track]);
 
+  // The track the element is actually playing. Updated synchronously on every
+  // switch, unlike state, so a late event from the old source (pause, timeupdate)
+  // can never write its time under the wrong episode.
+  const trackRef = useRef<PlayerTrack | null>(null);
+  // Last second written to storage, so timeupdate only saves every few seconds.
+  const lastSavedRef = useRef(0);
+
   const persistPosition = useCallback(() => {
     const audio = audioRef.current;
-    const track = state.track;
+    const track = trackRef.current;
     if (!audio || !track || !Number.isFinite(audio.currentTime)) return;
-    try {
-      localStorage.setItem(POSITION_KEY(track.id), String(Math.floor(audio.currentTime)));
-    } catch {
-      // Storage may be unavailable; losing the resume point is acceptable.
-    }
-  }, [state.track]);
+    lastSavedRef.current = audio.currentTime;
+    savePosition(track.id, audio.currentTime);
+  }, []);
 
   const play = useCallback(
     async (audio: HTMLAudioElement) => {
@@ -143,6 +210,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [patch],
   );
 
+  /** Swaps the element over to a new track and starts it at `startAt` seconds. */
+  const loadAndPlay = useCallback(
+    (track: PlayerTrack, startAt: number) => {
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      persistPosition();
+      trackRef.current = track;
+      patch({ track, isLoading: true, error: null, currentTime: startAt, duration: track.durationSeconds, bufferedTo: 0 });
+
+      audio.src = track.audioUrl;
+      audio.load();
+      if (startAt > 0) audio.currentTime = startAt;
+      lastSavedRef.current = startAt;
+
+      countPlay(track.id);
+      void play(audio);
+    },
+    [patch, persistPosition, play],
+  );
+
   const toggleTrack = useCallback(
     (track: PlayerTrack) => {
       const audio = audioRef.current;
@@ -154,38 +242,41 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      persistPosition();
-      patch({ track, isLoading: true, error: null, currentTime: 0, duration: track.durationSeconds, bufferedTo: 0 });
-
-      audio.src = track.audioUrl;
-      audio.load();
-
-      let resumeAt = 0;
-      try {
-        const saved = Number(localStorage.getItem(POSITION_KEY(track.id)) ?? 0);
-        const limit = track.durationSeconds - RESUME_TAIL_GUARD;
-        if (saved > RESUME_THRESHOLD && (limit <= 0 || saved < limit)) resumeAt = saved;
-      } catch {
-        // Ignore unreadable storage.
-      }
-
-      if (resumeAt > 0) {
-        audio.currentTime = resumeAt;
-        patch({ currentTime: resumeAt });
-      }
-
-      countPlay(track.id);
-      void play(audio);
+      loadAndPlay(track, resumePoint(readSavedPosition(track.id), track.durationSeconds));
     },
-    [patch, persistPosition, play, state.track?.id],
+    [loadAndPlay, play, state.track?.id],
+  );
+
+  const playFrom = useCallback(
+    (track: PlayerTrack, seconds: number) => {
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      if (state.track?.id !== track.id) {
+        loadAndPlay(track, seconds);
+        return;
+      }
+
+      audio.currentTime = seconds;
+      patch({ currentTime: seconds });
+      if (audio.paused) void play(audio);
+    },
+    [loadAndPlay, patch, play, state.track?.id],
   );
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !state.track) return;
+    // After a network error the element is stuck; reloading is the retry.
+    if (audio.error) {
+      const at = state.currentTime;
+      patch({ error: null, isLoading: true });
+      audio.load();
+      audio.currentTime = at;
+    }
     if (audio.paused) void play(audio);
     else audio.pause();
-  }, [play, state.track]);
+  }, [patch, play, state.currentTime, state.track]);
 
   const seekTo = useCallback(
     (seconds: number) => {
@@ -252,6 +343,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const close = useCallback(() => {
     const audio = audioRef.current;
     persistPosition();
+    trackRef.current = null;
     if (audio) {
       audio.pause();
       audio.removeAttribute("src");
@@ -270,9 +362,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       title: state.track.title,
       artist: siteConfig.author.name,
       album: siteConfig.name,
-      artwork: state.track.coverImage
-        ? [{ src: state.track.coverImage, sizes: "512x512", type: "image/png" }]
-        : undefined,
+      // No type or size: covers can be any format, and the show artwork is the fallback.
+      artwork: [{ src: state.track.coverImage || siteConfig.podcast.artwork }],
     });
 
     const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
@@ -361,6 +452,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     () => ({
       ...state,
       toggleTrack,
+      playFrom,
       togglePlay,
       seekTo,
       skipBy,
@@ -370,7 +462,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       close,
       isCurrent,
     }),
-    [close, isCurrent, seekTo, setPlaybackRate, setVolume, skipBy, state, toggleMute, togglePlay, toggleTrack],
+    [close, isCurrent, playFrom, seekTo, setPlaybackRate, setVolume, skipBy, state, toggleMute, togglePlay, toggleTrack],
   );
 
   return (
@@ -395,12 +487,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         onLoadedMetadata={(event) => {
           const audio = event.currentTarget;
           if (Number.isFinite(audio.duration) && audio.duration > 0) patch({ duration: audio.duration });
+          syncPositionState(audio);
         }}
+        onSeeked={(event) => syncPositionState(event.currentTarget)}
+        onRateChange={(event) => syncPositionState(event.currentTarget)}
         onTimeUpdate={(event) => {
           const audio = event.currentTarget;
           patch({ currentTime: audio.currentTime });
-          // ~4 timeupdate events per second, so this writes roughly every 5s.
-          if (Math.floor(audio.currentTime) % 5 === 0) persistPosition();
+          if (Math.abs(audio.currentTime - lastSavedRef.current) >= 5) persistPosition();
         }}
         onProgress={(event) => {
           const { buffered, currentTime } = event.currentTarget;
@@ -411,15 +505,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             }
           }
         }}
-        onEnded={() => {
-          patch({ isPlaying: false, currentTime: 0 });
-          if (state.track) {
-            try {
-              localStorage.removeItem(POSITION_KEY(state.track.id));
-            } catch {
-              // Ignore.
-            }
-          }
+        onEnded={(event) => {
+          patch({ isPlaying: false });
+          // Saved as the full length: the episode now reads as heard, and the next play starts over.
+          const track = trackRef.current;
+          if (track) savePosition(track.id, event.currentTarget.duration || track.durationSeconds);
         }}
         onError={() =>
           patch({

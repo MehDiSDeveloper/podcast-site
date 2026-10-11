@@ -296,6 +296,22 @@ optgroup {
     padding: 0.15em 0.4em;
     font-size: 0.9em;
   }
+  /* Show-note times that jump the player (see linkTimestamps). */
+  .rich-text .timestamp {
+    display: inline-block;
+    border-radius: var(--radius-xs);
+    background-color: var(--brand-soft);
+    color: var(--brand-strong);
+    padding: 0 0.4em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background-color 150ms, color 150ms;
+  }
+  .rich-text .timestamp:hover {
+    background-color: var(--brand);
+    color: var(--brand-contrast);
+  }
   .rich-text hr {
     border: 0;
     border-top: 1px solid var(--line);
@@ -340,7 +356,8 @@ optgroup {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  margin-top: 1px;
+  /* Centres the thumb on the visible line, which sits below the hit area's middle. */
+  margin-top: 7px;
   border-radius: 999px;
   background: var(--brand);
   border: 2px solid var(--canvas);
@@ -358,12 +375,23 @@ optgroup {
 }
 
 .group\/scrub:hover .player-scrub::-webkit-slider-thumb,
+.group\/scrub[data-scrubbing] .player-scrub::-webkit-slider-thumb,
 .player-scrub:focus-visible::-webkit-slider-thumb {
   opacity: 1;
 }
 .group\/scrub:hover .player-scrub::-moz-range-thumb,
+.group\/scrub[data-scrubbing] .player-scrub::-moz-range-thumb,
 .player-scrub:focus-visible::-moz-range-thumb {
   opacity: 1;
+}
+/* Touch screens have no hover, so the thumb is always there to grab. */
+@media (hover: none) {
+  .player-scrub::-webkit-slider-thumb {
+    opacity: 1;
+  }
+  .player-scrub::-moz-range-thumb {
+    opacity: 1;
+  }
 }
 
 .player-volume {

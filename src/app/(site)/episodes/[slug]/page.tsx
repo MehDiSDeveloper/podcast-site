@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PlayButton } from "@/components/player/play-button";
+import { ShowNotes } from "@/components/player/show-notes";
 import { JsonLd } from "@/components/seo/json-ld";
 import { EpisodeCard } from "@/components/site/episode-card";
 import { ShareRow } from "@/components/site/share-row";
@@ -18,6 +19,7 @@ import {
 } from "@/lib/structured-data";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { absoluteUrl, pageMetadata } from "@/lib/seo";
+import { linkTimestamps } from "@/lib/timestamps";
 import { decodeSlug, formatDate, formatDurationLabel, toFaDigits, toISODate, truncate } from "@/lib/utils";
 import {
   getAllPublishedEpisodes,
@@ -196,7 +198,7 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
             <div className="glass rich-text max-w-2xl rounded-3xl p-6 text-[1.0625rem] md:p-10">
               <p className="text-xl leading-loose text-ink">{episode.description}</p>
               {episode.showNotes ? (
-                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(episode.showNotes) }} />
+                <ShowNotes html={linkTimestamps(sanitizeHtml(episode.showNotes))} track={track} />
               ) : null}
             </div>
 
