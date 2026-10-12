@@ -76,6 +76,17 @@ export function Footer() {
             © {year} {siteConfig.name}. همه‌ی حقوق محفوظ است.
           </p>
           <p>ساخته‌شده برای گوش‌دادن، نه فقط دیده‌شدن.</p>
+          <p>
+            ساخته شده توسط{" "}
+            <a
+              href="https://geekware.ir"
+              target="_blank"
+              rel="noopener"
+              className="font-semibold transition-colors hover:text-brand-strong"
+            >
+              GeekWare.ir
+            </a>
+          </p>
         </div>
       </div>
     </footer>
