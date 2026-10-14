@@ -11,7 +11,7 @@ import { getCategories } from "@/server/taxonomy";
 
 export const metadata: Metadata = pageMetadata({
   title: "دسته‌ها",
-  description: `دسته‌های اصلی پادکست ${siteConfig.name}؛ هر دسته یک مواجهه، با اپیزودهایی که آن را از زوایای مختلف باز می‌کنند.`,
+  description: `دسته‌های اپیزودهای پادکست ${siteConfig.name}.`,
   path: "/categories",
 });
 
@@ -33,11 +33,7 @@ export default async function CategoriesPage() {
         )}
       />
 
-      <PageHeader
-        eyebrow="راهنمای آرشیو"
-        title="دسته‌ها"
-        lead="هر دسته یک مسیر است: مجموعه‌ای از اپیزودها که یک مسئله را از زوایای مختلف باز می‌کنند. از هر جا که به موقعیت امروزتان نزدیک‌تر است شروع کنید."
-      />
+      <PageHeader eyebrow="آرشیو" title="دسته‌ها" />
 
       <div className="container-page py-12 md:py-16">
         {categories.length === 0 ? (

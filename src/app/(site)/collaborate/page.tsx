@@ -13,7 +13,7 @@ import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = pageMetadata({
   title: "همکاری",
-  description: `شیوه‌های همکاری با ${siteConfig.author.name} برای پیدا کردن و صورت‌بندی مسئله: گفت‌وگوی فردی، گفت‌وگوی گروهی، کارگاه و سخنرانی.`,
+  description: `همکاری با ${siteConfig.author.name}: ${services.map((service) => service.title).join("، ")}.`,
   path: "/collaborate",
 });
 
@@ -32,7 +32,7 @@ export default async function CollaboratePage({ searchParams }: PageProps<"/coll
       <JsonLd
         data={graph(
           personSchema(),
-          professionalServiceSchema(services.map((s) => ({ name: s.title, description: s.summary }))),
+          professionalServiceSchema(services.map((s) => ({ name: s.title }))),
           breadcrumbSchema([
             { name: "خانه", path: "/" },
             { name: "همکاری", path: "/collaborate" },
@@ -40,11 +40,7 @@ export default async function CollaboratePage({ searchParams }: PageProps<"/coll
         )}
       />
 
-      <PageHeader
-        eyebrow="همکاری"
-        title="شیوه‌های همکاری"
-        lead="برای وقتی که می‌خواهید روی موقعیت خودتان کار کنید. در کنار پادکست، تعداد محدودی همکاری پذیرفته می‌شود."
-      />
+      <PageHeader eyebrow="همکاری" title="شیوه‌های همکاری" />
 
       <section aria-labelledby="ways-heading" className="border-b border-line">
         <div className="container-page py-14 md:py-20">
@@ -52,7 +48,7 @@ export default async function CollaboratePage({ searchParams }: PageProps<"/coll
             شیوه‌های همکاری
           </h2>
 
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {services.map((service) => (
               <li key={service.type} className="reveal flex">
                 <Link
@@ -62,17 +58,10 @@ export default async function CollaboratePage({ searchParams }: PageProps<"/coll
                   <h3 className="text-xl font-bold transition-colors group-hover:text-brand-strong">
                     {service.title}
                   </h3>
-                  <p className="mt-3 flex-1 leading-loose text-ink-muted">{service.summary}</p>
-                  <p className="mt-6 border-t border-line pt-4 text-sm text-ink-subtle">{service.note}</p>
                 </Link>
               </li>
             ))}
           </ul>
-
-          <p className="mt-8 max-w-2xl text-sm leading-loose text-ink-subtle">
-            بسته به مسئله، ممکن است بخشی از کار با هماهنگی شما به همکاران نزدیکم سپرده شود؛ گفت‌وگو و
-            مسئولیت کار همیشه با خودم می‌ماند.
-          </p>
         </div>
       </section>
 
@@ -80,13 +69,9 @@ export default async function CollaboratePage({ searchParams }: PageProps<"/coll
         <div className="container-page py-14 md:py-20">
           <div className="mx-auto max-w-3xl">
             <h2 id="invite-heading" className="text-2xl md:text-3xl">
-              از موقعیت‌تان بنویسید
+              درخواست همکاری
             </h2>
-            <p className="mt-3 leading-loose text-ink-muted">
-              لازم نیست مسئله را دقیق بدانید؛ پیدا کردنش بخشی از همین کار است. هر پیام با دقت خوانده می‌شود و
-              معمولاً ظرف چند روز پاسخ می‌گیرد. اگر همکاری معنا نداشته باشد، همین صادقانه گفته می‌شود.
-            </p>
-            <p className="mt-2 text-sm text-ink-subtle">
+            <p className="mt-3 text-sm text-ink-subtle">
               یا مستقیم بنویسید به{" "}
               <a
                 href={`mailto:${siteConfig.author.email}`}

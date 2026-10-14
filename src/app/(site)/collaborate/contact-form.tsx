@@ -266,13 +266,7 @@ export function ContactForm({ defaultType }: { defaultType?: CollaborationType }
         </Field>
       </div>
 
-      <Field
-        name="message"
-        label="موقعیتی که در آن هستید"
-        hint="لازم نیست بدانید مسئله دقیقاً چیست؛ بنویسید چه می‌گذرد، از کی، و تا امروز چه کرده‌اید."
-        required
-        error={errors.message}
-      >
+      <Field name="message" label="پیام" required error={errors.message}>
         {(props) => <Textarea {...props} rows={6} defaultValue={values.message} />}
       </Field>
 

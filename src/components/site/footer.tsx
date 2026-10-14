@@ -20,10 +20,9 @@ export function Footer() {
       <div className="container-page grid gap-10 py-14 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <p className="text-lg font-extrabold">{siteConfig.name}</p>
-          <p className="mt-3 max-w-sm text-sm leading-loose text-ink-muted">{siteConfig.description}</p>
           <a
             href="/feed.xml"
-            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-ink-muted transition-colors hover:text-brand-strong"
+            className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-ink-muted transition-colors hover:text-brand-strong"
           >
             <Rss className="size-4" aria-hidden="true" />
             فید RSS پادکست
@@ -75,7 +74,6 @@ export function Footer() {
           <p>
             © {year} {siteConfig.name}. همه‌ی حقوق محفوظ است.
           </p>
-          <p>ساخته‌شده برای گوش‌دادن، نه فقط دیده‌شدن.</p>
           <p>
             ساخته شده توسط{" "}
             <a

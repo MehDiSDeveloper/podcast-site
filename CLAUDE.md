@@ -5,11 +5,16 @@
 The podcast and site are named **درشان / Darshan**, same as the domain https://darshan.ir (the old placeholder name «زاویه» is gone).
 Persian (RTL) podcast + personal-brand site. Next.js 16, React 19, Prisma 7 (SQLite), Tailwind 4, Zod 4.
 
-**Message (keep all copy consistent with it):** Darshan helps people find their *own* problem and frame a vague situation
+**Message (background for decisions; not written on the site, see below):** Darshan helps people find their *own* problem and frame a vague situation
 («یک چیزی درست نیست») as a clear problem they can act on and follow up, at work or anywhere else in life.
 It is **not** a workplace/organisational podcast: no copy aimed at managers, teams-at-work or companies.
 Episodes are one numbered list; there are **no seasons** (the column was dropped).
-The offer (`src/config/services.ts`) is individual and group conversations, a problem-framing workshop and talks; the inquiry form lives only on `/collaborate#invite` (`/contact` redirects there) and asks no company/role/team-size (those columns stay only for old inquiries).
+The offer (`src/config/services.ts`) is individual and group conversations, a workshop and talks (names only); the inquiry form lives only on `/collaborate#invite` (`/contact` redirects there) and asks no company/role/team-size (those columns stay only for old inquiries).
+
+**No copy about the podcast (decided 2026-10-14).** The owner will write it later; until then the site is only an archive of episodes.
+Don't add text about what Darshan is about, its mission, its approach or its topics (work, society…) anywhere: home hero, page leads,
+section descriptions, footer, about, collaborate, meta descriptions, OG images. Show names, titles, the episodes' own data and plain
+UI labels only. The feed's description is the owner's text, edited in the admin (`/admin/podcast`).
 
 ## Principles (apply to every change)
 
@@ -50,7 +55,8 @@ The image is built without the production database — it is on a mounted disk a
 - Only `src/server/*` (all `server-only`) touches Prisma. Pages and server actions call it.
 - Zod schemas in `src/lib/validation` are shared by client and server. Status-like columns are strings (SQLite has no enums); allowed values live in `src/lib/enums.ts`.
 - Brand, links and the service offering come from `src/config/` — never hardcode them.
-- The default `Show` row (the RSS channel: title, author, description…) is re-synced from `siteConfig` on every start (`ensureDefaultShow` in `src/server/bootstrap.ts`), so edit the feed identity in config, not in the DB.
+- The default `Show` row is the RSS channel. Its identity (title, author, owner, category…) is re-synced from `siteConfig` on every start (`ensureDefaultShow` in `src/server/bootstrap.ts`), so edit that in config. Its description and cover are edited in the admin (`/admin/podcast`) and are not synced.
+- Covers (`src/lib/cover.ts`): show and episode each have `coverImage` (square JPG/PNG, what podcast apps get through `itunes:image`) and an optional `coverVideo` (MP4/WebM/GIF, e.g. a Canva export; the site plays it, the feed never carries it). An episode without its own image uses the show's cover; a show without one uses the generated `/podcast-artwork.png`. Always resolve with `showCover()`/`episodeCover()` (server: `getShowCover()`), never read the columns directly. Publishing an episode without a cover asks for a second click in the form.
 - Admin mutations call `revalidatePublicContent()` (`src/server/revalidate.ts`).
 - Public page metadata is built with `pageMetadata()` (`src/lib/seo.ts`). Next replaces `openGraph`, `twitter` and `alternates` whole instead of merging them, so a hand-written object drops the share image, site name and RSS link. Site URLs go through `absoluteUrl()` so Persian slugs are percent-encoded.
 - SEO of `/episodes`: `?page=N` is indexed with its own canonical; search, filter and sort variants are `noindex, follow`.

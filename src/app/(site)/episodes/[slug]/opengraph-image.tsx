@@ -12,7 +12,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const episode = await getEpisodeBySlug(slug);
 
   if (!episode) {
-    return renderOgImage({ title: siteConfig.tagline, eyebrow: "پادکست" });
+    return renderOgImage({ title: siteConfig.name, eyebrow: "پادکست" });
   }
 
   return renderOgImage({

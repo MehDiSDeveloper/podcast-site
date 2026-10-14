@@ -31,7 +31,7 @@ export async function generateMetadata({ searchParams }: PageProps<"/episodes">)
 
   const metadata = pageMetadata({
     title: page > 1 ? `همه‌ی اپیزودها، صفحه‌ی ${toFaDigits(page)}` : "همه‌ی اپیزودها",
-    description: `آرشیو کامل اپیزودهای ${siteConfig.name}؛ جست‌وجو و فیلتر بر اساس دسته، دریچه، برچسب، عنوان یا محتوای اپیزود.`,
+    description: `آرشیو اپیزودهای پادکست ${siteConfig.name}.`,
     path: page > 1 ? `/episodes?page=${page}` : "/episodes",
   });
 
@@ -91,11 +91,7 @@ export default async function EpisodesPage({ searchParams }: PageProps<"/episode
         )}
       />
 
-      <PageHeader
-        eyebrow="آرشیو"
-        title="همه‌ی اپیزودها"
-        lead="هر اپیزود یک موقعیت آشنا را تا رسیدن به مسئله‌ای روشن دنبال می‌کند. با جست‌وجو، دسته یا دریچه، آنچه را الان لازم دارید پیدا کنید."
-      />
+      <PageHeader eyebrow="آرشیو" title="همه‌ی اپیزودها" />
 
       <div className="container-page py-12 md:py-16">
         {/* Search */}

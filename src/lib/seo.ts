@@ -27,7 +27,7 @@ const defaultImage = {
   url: "/opengraph-image",
   width: 1200,
   height: 630,
-  alt: `${siteConfig.name} — ${siteConfig.tagline}`,
+  alt: `پادکست ${siteConfig.name}`,
 };
 
 export function pageMetadata({

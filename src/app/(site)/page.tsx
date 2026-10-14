@@ -6,14 +6,16 @@ import { PlayButton } from "@/components/player/play-button";
 import { JsonLd } from "@/components/seo/json-ld";
 import { EpisodeCard } from "@/components/site/episode-card";
 import { SectionHeading } from "@/components/site/page-header";
+import { CoverArt } from "@/components/site/cover-art";
 import { SubscribeStrip } from "@/components/site/subscribe-strip";
 import { buttonStyles } from "@/components/ui/button";
-import { approachSteps, disciplines } from "@/config/services";
 import { siteConfig } from "@/config/site";
+import { episodeCover } from "@/lib/cover";
 import { feedAlternate } from "@/lib/seo";
 import { graph, personSchema, podcastSeriesSchema, websiteSchema } from "@/lib/structured-data";
 import { formatDate, formatDurationLabel, toFaDigits, toISODate } from "@/lib/utils";
 import { getFeaturedEpisode, getLatestEpisodes, toPlayerTrack } from "@/server/episodes";
+import { getShowCover } from "@/server/show";
 import { getCategories } from "@/server/taxonomy";
 
 export const metadata: Metadata = {
@@ -34,10 +36,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [featured, latest, categories] = await Promise.all([
+  const [featured, latest, categories, showCover] = await Promise.all([
     getFeaturedEpisode(),
     getLatestEpisodes(7),
     getCategories(),
+    getShowCover(),
   ]);
 
   // Keep the hero episode out of the grid below it.
@@ -46,34 +49,26 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd
-        data={graph(personSchema(), websiteSchema(), podcastSeriesSchema())}
+        data={graph(personSchema(), websiteSchema(), podcastSeriesSchema(showCover.image))}
       />
 
       {/* ---------------------------------------------------------------- hero */}
+      {/* Name, cover and the way in; no copy about the show until its owner writes it. */}
       <section className="relative border-b border-line">
-        <div className="container-page relative grid gap-12 py-16 md:py-28 lg:grid-cols-[1.45fr_1fr] lg:items-center xl:gap-16">
-          <div>
+        <div className="container-page relative grid gap-12 py-14 md:py-20 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-center xl:gap-16">
+          <div className="min-w-0">
             <p className="glass inline-flex items-center gap-2.5 rounded-full px-3.5 py-1.5 text-sm font-semibold text-brand-strong">
               <span className="on-air size-2 rounded-full bg-accent" aria-hidden="true" />
-              پادکست {siteConfig.name}
+              پادکست
             </p>
 
-            <h1 className="mt-6 text-[2.25rem] leading-[1.4] sm:text-5xl lg:text-[2.625rem] xl:text-5xl">
-              از «یک چیزی درست نیست»{" "}
-              {/* The line break only helps once there is room for each clause. */}
-              <br className="hidden sm:block" />
-              تا <span className="text-aurora">مسئله‌ای</span> که بشود دنبالش کرد.
+            <h1 className="mt-6 text-5xl leading-tight sm:text-6xl">
+              <span className="text-aurora">{siteConfig.name}</span>
             </h1>
-
-            <p className="mt-6 max-w-xl text-lg leading-loose text-ink-muted">
-              بیشتر وقت‌ها گیر ما نبودِ راه‌حل نیست؛ این است که هنوز نمی‌دانیم مسئله دقیقاً چیست. هر
-              اپیزود یک موقعیت آشنا را، در کار یا هر جای دیگر زندگی، با کمک روان‌شناسی، فلسفه و علوم
-              اعصاب صورت‌بندی می‌کند تا به مسئله‌ای روشن و قدمی قابل‌پیگیری برسیم.
-            </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Link href="/episodes" className={buttonStyles({ size: "lg" })}>
-                شنیدن اپیزودها
+                همه‌ی اپیزودها
                 <ArrowLeft className="size-4" aria-hidden="true" />
               </Link>
               <a href="#subscribe" className={buttonStyles({ variant: "outline", size: "lg" })}>
@@ -82,56 +77,53 @@ export default async function HomePage() {
               </a>
             </div>
 
-            <ul className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-subtle">
-              {disciplines.map((discipline) => (
-                <li key={discipline} className="flex items-center gap-2">
-                  <span className="size-1 rounded-full bg-ink-subtle" aria-hidden="true" />
-                  {discipline}
-                </li>
-              ))}
-            </ul>
+            {/* Featured episode */}
+            {featured ? (
+              <div className="glass mt-12 flex max-w-2xl flex-col gap-5 rounded-3xl p-6 sm:flex-row sm:items-start md:p-7">
+                {/* eslint-disable-next-line @next/next/no-img-element -- uploaded covers are served as-is */}
+                <img
+                  src={episodeCover(featured, showCover).image}
+                  alt=""
+                  className="aspect-square size-24 shrink-0 rounded-2xl bg-surface-2 object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold">
+                    <span className="rounded-full bg-accent-soft px-3 py-1 text-accent-ink">اپیزود پیشنهادی</span>
+                  </p>
+
+                  <h2 className="mt-4 text-2xl leading-snug">
+                    <Link href={`/episodes/${featured.slug}`} className="transition-colors hover:text-brand-strong">
+                      {featured.title}
+                    </Link>
+                  </h2>
+
+                  <p className="mt-3 line-clamp-3 leading-loose text-ink-muted">{featured.description}</p>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-ink-subtle">
+                    {featured.episodeNumber ? (
+                      <span className="nums font-semibold text-brand-strong">اپیزود {toFaDigits(featured.episodeNumber)}</span>
+                    ) : null}
+                    {featured.publishedAt ? (
+                      <time dateTime={toISODate(featured.publishedAt)}>{formatDate(featured.publishedAt)}</time>
+                    ) : null}
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="size-3.5" aria-hidden="true" />
+                      {formatDurationLabel(featured.durationSeconds)}
+                    </span>
+                  </div>
+
+                  <div className="mt-6">
+                    <PlayButton track={toPlayerTrack(featured, episodeCover(featured, showCover))} variant="full" />
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
 
-          {/* Featured episode */}
-          {featured ? (
-            <div className="relative isolate">
-              <span className="orbit-glow" aria-hidden="true" />
-            <div className="glass relative rounded-3xl p-7 md:p-8">
-              <span className="orbit-ring" aria-hidden="true" />
-              <p className="text-sm font-bold">
-                <span className="rounded-full bg-accent-soft px-3 py-1 text-accent-ink">اپیزود پیشنهادی</span>
-              </p>
-
-              <h2 className="mt-5 text-2xl leading-snug">
-                <Link href={`/episodes/${featured.slug}`} className="transition-colors hover:text-brand-strong">
-                  {featured.title}
-                </Link>
-              </h2>
-
-              <p className="mt-3 line-clamp-3 leading-loose text-ink-muted">{featured.description}</p>
-
-              <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-ink-subtle">
-                {featured.publishedAt ? (
-                  <time dateTime={toISODate(featured.publishedAt)}>{formatDate(featured.publishedAt)}</time>
-                ) : null}
-                <span className="inline-flex items-center gap-1.5">
-                  <Clock className="size-3.5" aria-hidden="true" />
-                  {formatDurationLabel(featured.durationSeconds)}
-                </span>
-              </div>
-
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                <PlayButton track={toPlayerTrack(featured)} variant="full" />
-                <Link
-                  href={`/episodes/${featured.slug}`}
-                  className={buttonStyles({ variant: "ghost", size: "lg", className: "h-14" })}
-                >
-                  یادداشت‌های اپیزود
-                </Link>
-              </div>
-            </div>
-            </div>
-          ) : null}
+          <div className="relative isolate order-first mx-auto w-full max-w-72 rounded-3xl lg:order-none lg:max-w-none">
+            <span className="orbit-glow" aria-hidden="true" />
+            <CoverArt cover={showCover} alt={`کاور پادکست ${siteConfig.name}`} className="rounded-3xl shadow-lifted" />
+          </div>
         </div>
       </section>
 
@@ -142,7 +134,6 @@ export default async function HomePage() {
             <SectionHeading
               id="latest-heading"
               title="تازه‌ترین اپیزودها"
-              description="از هر کدام می‌توانید شروع کنید؛ اپیزودها به هم وابسته نیستند."
               action={
                 <Link
                   href="/episodes"
@@ -165,37 +156,13 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {/* ------------------------------------------------------------ approach */}
-      <section aria-labelledby="approach-heading" className="border-b border-line">
-        <div className="container-page py-16 md:py-24">
-          <SectionHeading
-            id="approach-heading"
-            title="در هر اپیزود چه می‌گذرد؟"
-            description="مسیری سه‌مرحله‌ای، از موقعیتی مبهم تا مسئله‌ای که بشود رویش کار کرد."
-          />
-
-          <ol className="mt-10 grid gap-6 md:grid-cols-3">
-            {approachSteps.map((step, index) => (
-              <li key={step.title} className="reveal glass spotlight rounded-2xl p-7">
-                <span className="nums chip-tint grid size-10 place-items-center rounded-xl text-sm font-bold">
-                  {toFaDigits(index + 1)}
-                </span>
-                <h3 className="mt-5 text-lg font-bold">{step.title}</h3>
-                <p className="mt-3 leading-loose text-ink-muted">{step.body}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
       {/* --------------------------------------------------------- categories */}
       {categories.length > 0 ? (
         <section aria-labelledby="categories-heading" className="border-b border-line">
           <div className="container-page py-16 md:py-24">
             <SectionHeading
               id="categories-heading"
-              title="بر اساس دسته بگردید"
-              description="هر دسته، مجموعه‌ای از اپیزودهایی است که یک مواجهه را از زوایای مختلف باز می‌کنند."
+              title="دسته‌ها"
             />
 
             <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

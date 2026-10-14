@@ -35,7 +35,7 @@ export type CollaborationType = (typeof COLLABORATION_TYPES)[number];
 export const COLLABORATION_TYPE_LABELS: Record<CollaborationType, string> = {
   COACHING_INDIVIDUAL: "گفت‌وگوی فردی",
   COACHING_TEAM: "گفت‌وگوی گروهی",
-  WORKSHOP: "کارگاه صورت‌بندی مسئله",
+  WORKSHOP: "کارگاه",
   // No longer offered; kept so older inquiries still have a label.
   CONSULTING: "مسئله‌ی سازمانی",
   SPEAKING: "سخنرانی",

@@ -13,9 +13,12 @@ export type NavItem = {
 export const siteConfig = {
   name: "درشان",
   nameLatin: "Darshan",
-  tagline: "جور دیگر دیدنِ خود، آدم‌ها و زندگی",
-  description:
-    "پادکستی برای پیدا کردن مسئله‌ی خودمان؛ هر اپیزود موقعیتی آشنا در کار یا زندگی را با کمک روان‌شناسی، علوم اعصاب، فلسفه، تاریخ و اقتصاد صورت‌بندی می‌کند تا به مسئله‌ای برسیم که بشود دنبالش کرد.",
+  /**
+   * Deliberately bare: the site carries no copy about what the podcast is
+   * about until the owner writes it. The feed's description is edited in the
+   * admin (/admin/podcast); this is only the site's default meta description.
+   */
+  description: "پادکست درشان",
 
   /** Public origin. Set NEXT_PUBLIC_SITE_URL in production for correct canonicals. */
   url: (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, ""),
