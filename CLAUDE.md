@@ -123,6 +123,11 @@ ssh vps "cd /srv/podcast-site && docker compose ps && docker compose logs --tail
 
 Production is the VPS described above. Liara is no longer used; `liara.json` and `docs/deploy-liara.md` are kept only as history.
 
+## Content assistant doc
+
+`docs/cowork-context.md` (Persian) is the context the user gives a separate Claude Cowork assistant that handles episodes, publishing and podcast directories (no code).
+When a change affects the admin panel, episode fields/limits, publishing, the feed or the public pages, update that doc in the same change.
+
 ## Conventions
 
 - UI copy in Persian; code, comments and commits in English.
