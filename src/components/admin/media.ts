@@ -11,7 +11,7 @@ export type UploadedFile = { url: string; size: number; type: string };
  */
 export function uploadFile(
   file: File,
-  kind: "audio" | "image",
+  kind: "audio" | "image" | "animation",
   onProgress?: (fraction: number) => void,
 ): Promise<UploadedFile> {
   return new Promise((resolve, reject) => {
@@ -77,4 +77,28 @@ export function formatBytes(bytes: number): string {
   const units = ["B", "KB", "MB", "GB"];
   const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
   return `${(bytes / 1024 ** exponent).toFixed(exponent === 0 ? 0 : 1)} ${units[exponent]}`;
+}
+
+/** Pixel size of an image or video file, or null when the browser cannot read it. */
+export function readMediaSize(file: File): Promise<{ width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const done = (size: { width: number; height: number } | null) => {
+      URL.revokeObjectURL(url);
+      resolve(size);
+    };
+
+    if (file.type.startsWith("video/")) {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => done({ width: video.videoWidth, height: video.videoHeight });
+      video.onerror = () => done(null);
+      video.src = url;
+    } else {
+      const image = new Image();
+      image.onload = () => done({ width: image.naturalWidth, height: image.naturalHeight });
+      image.onerror = () => done(null);
+      image.src = url;
+    }
+  });
 }

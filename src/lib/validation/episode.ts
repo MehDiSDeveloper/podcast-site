@@ -21,7 +21,7 @@ const optionalInt = z
     message: "یک عدد صحیح مثبت وارد کنید.",
   });
 
-const mediaUrl = (message: string) =>
+export const mediaUrl = (message: string) =>
   z
     .string()
     .trim()
@@ -47,6 +47,7 @@ export const episodeSchema = z
     audioMimeType: z.string().trim().min(1).catch("audio/mpeg"),
     durationSeconds: z.coerce.number().int().min(1, { message: "مدت اپیزود را وارد کنید." }).catch(0),
     coverImage: mediaUrl("آدرس تصویر معتبر نیست.").transform((value) => value || undefined),
+    coverVideo: mediaUrl("آدرس کاور متحرک معتبر نیست.").transform((value) => value || undefined),
 
     episodeNumber: optionalInt,
     episodeType: z.enum(EPISODE_TYPES),

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { INQUIRY_STATUSES } from "@/lib/enums";
 import { normalizeFa } from "@/lib/utils";
+import { mediaUrl } from "@/lib/validation/episode";
 
 const optionalText = (max: number) =>
   z
@@ -82,3 +83,16 @@ export const passwordSchema = z
     message: "تکرار رمز با رمز جدید یکی نیست.",
   });
 export type PasswordInput = z.infer<typeof passwordSchema>;
+
+/** The podcast itself (the RSS channel): what /admin/podcast edits. */
+export const showSchema = z.object({
+  description: z
+    .string()
+    .trim()
+    .min(1, { message: "توضیح پادکست را بنویسید؛ اپ‌های پادکست بدون آن فید را نمی‌پذیرند." })
+    .max(4000, { message: "حداکثر ۴۰۰۰ نویسه مجاز است." }),
+  coverImage: mediaUrl("آدرس تصویر معتبر نیست.").transform((value) => value || null),
+  coverVideo: mediaUrl("آدرس کاور متحرک معتبر نیست.").transform((value) => value || null),
+});
+
+export type ShowInput = z.infer<typeof showSchema>;

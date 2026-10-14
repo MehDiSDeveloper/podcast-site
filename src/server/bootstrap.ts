@@ -53,16 +53,14 @@ async function ensureAdminUser(): Promise<void> {
 }
 
 /**
- * Creates the default show, then keeps its feed identity in step with
- * `siteConfig` on every start. There is no admin screen for the show, so the
- * config is the only place it is edited; without this a rename would never
- * reach an existing database (and the RSS channel title).
+ * Creates the default show, then keeps its feed identity (title, author,
+ * category…) in step with `siteConfig` on every start, so a rename reaches an
+ * existing database and the RSS channel. The description and the cover are
+ * edited in the admin (/admin/podcast) and are only set here on creation.
  */
 async function ensureDefaultShow(): Promise<void> {
   const data = {
     title: siteConfig.name,
-    subtitle: siteConfig.tagline,
-    description: siteConfig.description,
     author: siteConfig.author.name,
     ownerName: siteConfig.podcast.ownerName,
     ownerEmail: siteConfig.podcast.ownerEmail,
@@ -71,7 +69,6 @@ async function ensureDefaultShow(): Promise<void> {
     subcategory: siteConfig.podcast.itunesSubcategory,
     explicit: siteConfig.podcast.explicit,
     copyright: siteConfig.podcast.copyright,
-    coverImage: siteConfig.podcast.artwork,
   };
 
   const existing = await db.show.findFirst({ where: { isDefault: true } });
@@ -87,7 +84,7 @@ async function ensureDefaultShow(): Promise<void> {
   await db.show.upsert({
     where: { slug: DEFAULT_SHOW_SLUG },
     update: { ...data, isDefault: true },
-    create: { ...data, slug: DEFAULT_SHOW_SLUG, isDefault: true },
+    create: { ...data, description: siteConfig.description, slug: DEFAULT_SHOW_SLUG, isDefault: true },
   });
   console.info("[bootstrap] created default show.");
 }

@@ -92,6 +92,7 @@ export async function saveEpisode(input: EpisodeInput, id?: string) {
     audioMimeType: input.audioMimeType,
     durationSeconds: input.durationSeconds,
     coverImage: input.coverImage ?? null,
+    coverVideo: input.coverVideo ?? null,
     episodeNumber: input.episodeNumber ?? null,
     episodeType: input.episodeType,
     status: input.status,

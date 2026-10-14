@@ -77,8 +77,12 @@ model Show {
   slug        String  @unique
   title       String
   subtitle    String?
+  /// Edited in the admin (/admin/podcast); shown by podcast apps.
   description String
+  /// Square JPG/PNG used by podcast apps; null means the generated artwork.
   coverImage  String?
+  /// Optional animated version (MP4/WebM/GIF), shown on the site only.
+  coverVideo  String?
 
   author     String
   ownerName  String
@@ -123,7 +127,10 @@ model Episode {
   audioMimeType   String @default("audio/mpeg")
   durationSeconds Int    @default(0)
 
+  /// Square JPG/PNG; null means the show's cover is used.
   coverImage String?
+  /// Optional animated version (MP4/WebM/GIF), shown on the site only.
+  coverVideo String?
 
   /// DRAFT | SCHEDULED | PUBLISHED
   status      String    @default("DRAFT")

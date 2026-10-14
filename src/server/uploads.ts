@@ -9,7 +9,7 @@ import { pipeline } from "node:stream/promises";
 import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 
 /**
- * Local file storage for uploaded audio and images.
+ * Local file storage for uploaded audio, images and animated covers.
  *
  * Files live outside public/ because Next.js only serves public files that
  * existed at build time. They are served back by the /uploads route handler.
@@ -28,18 +28,28 @@ export const UPLOAD_KINDS = {
       "audio/wav": "wav",
     },
   },
+  /** Cover art. Podcast apps accept only JPG and PNG. */
   image: {
-    maxBytes: 5 * 1024 * 1024,
-    types: { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" },
+    maxBytes: 10 * 1024 * 1024,
+    types: { "image/jpeg": "jpg", "image/png": "png" },
+  },
+  /** Animated cover, e.g. exported from Canva; shown on the site only. */
+  animation: {
+    maxBytes: 50 * 1024 * 1024,
+    types: { "video/mp4": "mp4", "video/webm": "webm", "image/gif": "gif" },
   },
 } as const;
 
 export type UploadKind = keyof typeof UPLOAD_KINDS;
 
 /** File extension -> MIME type, for serving files back. */
-export const CONTENT_TYPES: Record<string, string> = Object.fromEntries(
-  Object.values(UPLOAD_KINDS).flatMap((kind) => Object.entries(kind.types).map(([type, ext]) => [ext, type])),
-);
+export const CONTENT_TYPES: Record<string, string> = {
+  // No longer accepted for upload, but older covers may still be WebP.
+  webp: "image/webp",
+  ...Object.fromEntries(
+    Object.values(UPLOAD_KINDS).flatMap((kind) => Object.entries(kind.types).map(([type, ext]) => [ext, type])),
+  ),
+};
 
 export function uploadRoot(): string {
   const dir = process.env.UPLOAD_DIR || "storage/uploads";
