@@ -3,13 +3,15 @@ import type { Metadata } from "next";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { EpisodeForm, type EpisodeFormValues } from "@/components/admin/episode-form";
 import { db } from "@/server/db";
+import { getShowCover } from "@/server/show";
 import { getEpisodeFormOptions } from "@/server/taxonomy";
 
 export const metadata: Metadata = { title: "اپیزود جدید" };
 
 export default async function NewEpisodePage() {
-  const [options, last] = await Promise.all([
+  const [options, showCover, last] = await Promise.all([
     getEpisodeFormOptions(),
+    getShowCover(),
     db.episode.findFirst({ orderBy: { episodeNumber: "desc" }, select: { episodeNumber: true } }),
   ]);
 
@@ -25,6 +27,7 @@ export default async function NewEpisodePage() {
     audioMimeType: "audio/mpeg",
     durationSeconds: 0,
     coverImage: "",
+    coverVideo: "",
     // Suggest the next number so a routine publish needs one less field.
     episodeNumber: (last?.episodeNumber ?? 0) + 1,
     episodeType: "full",
@@ -42,7 +45,7 @@ export default async function NewEpisodePage() {
   return (
     <>
       <AdminPageHeader title="اپیزود جدید" description="تا وقتی وضعیت «منتشرشده» نباشد، اپیزود در سایت دیده نمی‌شود." />
-      <EpisodeForm initial={initial} options={options} />
+      <EpisodeForm initial={initial} options={{ ...options, showCoverImage: showCover.image }} />
     </>
   );
 }

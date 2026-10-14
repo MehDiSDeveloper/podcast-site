@@ -8,6 +8,7 @@ import { EpisodeForm } from "@/components/admin/episode-form";
 import { DeleteButton } from "@/components/admin/form-parts";
 import { buttonStyles } from "@/components/ui/button";
 import { getAdminEpisode } from "@/server/admin/episodes";
+import { getShowCover } from "@/server/show";
 import { getEpisodeFormOptions } from "@/server/taxonomy";
 
 import { deleteEpisodeAction } from "../actions";
@@ -16,7 +17,11 @@ export const metadata: Metadata = { title: "ویرایش اپیزود" };
 
 export default async function EditEpisodePage({ params, searchParams }: PageProps<"/admin/episodes/[id]">) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const [episode, options] = await Promise.all([getAdminEpisode(id), getEpisodeFormOptions()]);
+  const [episode, options, showCover] = await Promise.all([
+    getAdminEpisode(id),
+    getEpisodeFormOptions(),
+    getShowCover(),
+  ]);
 
   if (!episode) notFound();
 
@@ -49,7 +54,7 @@ export default async function EditEpisodePage({ params, searchParams }: PageProp
       ) : null}
 
       <EpisodeForm
-        options={options}
+        options={{ ...options, showCoverImage: showCover.image }}
         initial={{
           id: episode.id,
           title: episode.title,
@@ -63,6 +68,7 @@ export default async function EditEpisodePage({ params, searchParams }: PageProp
           audioMimeType: episode.audioMimeType,
           durationSeconds: episode.durationSeconds,
           coverImage: episode.coverImage ?? "",
+          coverVideo: episode.coverVideo ?? "",
           episodeNumber: episode.episodeNumber,
           episodeType: episode.episodeType,
           status: episode.status,

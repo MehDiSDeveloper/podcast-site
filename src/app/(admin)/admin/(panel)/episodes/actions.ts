@@ -50,6 +50,7 @@ export async function saveEpisodeAction(_previous: EpisodeFormState, formData: F
     // Clean up files this episode no longer references.
     if (previous?.audioUrl !== episode.audioUrl) await deleteUpload(previous?.audioUrl);
     if (previous?.coverImage !== episode.coverImage) await deleteUpload(previous?.coverImage);
+    if (previous?.coverVideo !== episode.coverVideo) await deleteUpload(previous?.coverVideo);
   } catch (error) {
     console.error("[admin] save episode failed:", error);
     return { status: "error", message: "ذخیره‌ی اپیزود ناموفق بود. دوباره تلاش کنید." };
@@ -71,6 +72,7 @@ export async function deleteEpisodeAction(formData: FormData) {
     await deleteEpisode(episode.id);
     await deleteUpload(episode.audioUrl);
     await deleteUpload(episode.coverImage);
+    await deleteUpload(episode.coverVideo);
     revalidatePublicContent();
   }
 

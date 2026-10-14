@@ -1,9 +1,10 @@
 "use client";
 
-import { Link2, Loader2, Upload, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, Link2, Loader2, Upload } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { saveEpisodeAction, type EpisodeFormState } from "@/app/(admin)/admin/(panel)/episodes/actions";
+import { CoverFields } from "@/components/admin/cover-fields";
 import { Checkbox, FormSection, FormStatus, SubmitButton, useFormAction } from "@/components/admin/form-parts";
 import { detectAudioDuration, formatBytes, parseDuration, uploadFile } from "@/components/admin/media";
 import { TagInput } from "@/components/admin/tag-input";
@@ -31,6 +32,7 @@ export type EpisodeFormValues = {
   audioMimeType: string;
   durationSeconds: number;
   coverImage: string;
+  coverVideo: string;
   episodeNumber: number | null;
   episodeType: string;
   status: string;
@@ -49,6 +51,8 @@ export type EpisodeFormOptions = {
   lenses: { id: string; name: string }[];
   /** Names of every existing tag, for suggestions. */
   tags: string[];
+  /** The podcast's cover image, used by episodes that have none. */
+  showCoverImage: string;
 };
 
 export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; options: EpisodeFormOptions }) {
@@ -59,6 +63,26 @@ export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; 
   const [notes, setNotes] = useState(initial.showNotes);
   const [previewNotes, setPreviewNotes] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState(initial.status);
+  const [coverImage, setCoverImage] = useState(initial.coverImage);
+
+  // Publishing without a cover takes a second click: the first one only points
+  // at the warning. An episode already live without a cover was confirmed before.
+  const missingCover = status !== "DRAFT" && !coverImage;
+  const [coverConfirmed, setCoverConfirmed] = useState(initial.status !== "DRAFT" && !initial.coverImage);
+  const [coverNudged, setCoverNudged] = useState(false);
+  const coverWarningRef = useRef<HTMLDivElement>(null);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (missingCover && !coverConfirmed) {
+      event.preventDefault();
+      setCoverConfirmed(true);
+      setCoverNudged(true);
+      coverWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    onSubmit(event);
+  }
 
   // datetime-local has no timezone, so the value is derived in the browser's
   // own zone. The input is rendered only on the client, which keeps the
@@ -76,7 +100,7 @@ export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; 
   }, [state]);
 
   return (
-    <form noValidate onSubmit={onSubmit} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <form noValidate onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
       {initial.id ? <input type="hidden" name="id" value={initial.id} /> : null}
 
       <div className="flex min-w-0 flex-col gap-6">
@@ -197,7 +221,7 @@ export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; 
         <FormSection title="انتشار">
           <Field name="status" label="وضعیت" required error={errors.status}>
             {(props) => (
-              <Select {...props} defaultValue={initial.status}>
+              <Select {...props} value={status} onChange={(event) => setStatus(event.target.value)}>
                 {EPISODE_STATUSES.map((status) => (
                   <option key={status} value={status}>
                     {EPISODE_STATUS_LABELS[status]}
@@ -242,10 +266,43 @@ export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; 
           <Checkbox name="featured" label="اپیزود پیشنهادی" hint="در بخش اصلی صفحه‌ی خانه نمایش داده می‌شود." defaultChecked={initial.featured} />
           <Checkbox name="explicit" label="محتوای بزرگسال" hint="در فید پادکست علامت‌گذاری می‌شود." defaultChecked={initial.explicit} />
 
+          {missingCover ? (
+            <div
+              ref={coverWarningRef}
+              role={coverNudged ? "alert" : undefined}
+              className={cn(
+                "flex gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm leading-relaxed",
+                coverNudged && "ring-4 ring-warning/25",
+              )}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- the podcast cover, an arbitrary URL */}
+              <img src={options.showCoverImage} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+              <p>
+                <AlertTriangle className="ml-1 inline size-4 text-warning" aria-hidden="true" />
+                این اپیزود کاور ندارد. اگر بدون کاور منتشر شود، کاور پادکست (همین تصویر) برایش استفاده می‌شود؛ در سایت
+                و در اپ‌های پادکست.
+              </p>
+            </div>
+          ) : null}
+
           <div className="flex items-center justify-end gap-2 border-t border-line pt-5">
-            <SubmitButton pending={pending || uploading}>{initial.id ? "ذخیره‌ی تغییرات" : "ایجاد اپیزود"}</SubmitButton>
+            <SubmitButton pending={pending || uploading}>
+              {missingCover && coverNudged ? "منتشر شود با کاور پادکست" : initial.id ? "ذخیره‌ی تغییرات" : "ایجاد اپیزود"}
+            </SubmitButton>
           </div>
           {uploading ? <p className="text-xs text-ink-subtle">صبر کنید تا بارگذاری تمام شود.</p> : null}
+        </FormSection>
+
+        <FormSection title="کاور اپیزود" description="بدون کاور، کاور پادکست استفاده می‌شود.">
+          <CoverFields
+            initialImage={initial.coverImage}
+            initialVideo={initial.coverVideo}
+            fallbackImage={options.showCoverImage}
+            fallbackLabel="فعلاً کاور پادکست"
+            error={errors.coverImage ?? errors.coverVideo}
+            onImageChange={setCoverImage}
+            onUploadingChange={setUploading}
+          />
         </FormSection>
 
         <FormSection title="مشخصات">
@@ -314,10 +371,6 @@ export function EpisodeForm({ initial, options }: { initial: EpisodeFormValues; 
             </legend>
             <TagInput name="tags" initial={initial.tags} suggestions={options.tags} error={errors.tags} />
           </fieldset>
-        </FormSection>
-
-        <FormSection title="تصویر اختصاصی">
-          <CoverField initial={initial.coverImage} error={errors.coverImage} onUploadingChange={setUploading} />
         </FormSection>
       </div>
     </form>
@@ -487,72 +540,6 @@ function AudioField({
           />
         )}
       </Field>
-    </>
-  );
-}
-
-function CoverField({
-  initial,
-  error,
-  onUploadingChange,
-}: {
-  initial: string;
-  error?: string;
-  onUploadingChange: (value: boolean) => void;
-}) {
-  const [url, setUrl] = useState(initial);
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-
-  async function handleFile(file: File) {
-    setBusy(true);
-    setMessage(null);
-    onUploadingChange(true);
-    try {
-      setUrl((await uploadFile(file, "image")).url);
-    } catch (uploadError) {
-      setMessage((uploadError as Error).message);
-    } finally {
-      setBusy(false);
-      onUploadingChange(false);
-    }
-  }
-
-  return (
-    <>
-      <input type="hidden" name="coverImage" value={url} />
-      {url ? (
-        <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary admin-provided URL */}
-          <img src={url} alt="تصویر اپیزود" className="aspect-square w-full rounded-xl object-cover" />
-          <button
-            type="button"
-            onClick={() => setUrl("")}
-            aria-label="حذف تصویر"
-            className="absolute left-2 top-2 grid size-8 place-items-center rounded-full bg-ink/70 text-ink-inverse hover:bg-ink"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </button>
-        </div>
-      ) : (
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line-strong px-4 py-6 text-sm font-semibold text-ink-muted transition-colors hover:border-brand">
-          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Upload className="size-4" aria-hidden="true" />}
-          {busy ? "در حال بارگذاری…" : "بارگذاری تصویر (JPG، PNG، WebP)"}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="sr-only"
-            disabled={busy}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) void handleFile(file);
-              event.target.value = "";
-            }}
-          />
-        </label>
-      )}
-      <p className="text-xs text-ink-subtle">اختیاری. بدون آن، تصویر پیش‌فرض پادکست استفاده می‌شود.</p>
-      {message || error ? <p className="text-xs font-medium text-danger">{message ?? error}</p> : null}
     </>
   );
 }
