@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import type { PlayerTrack } from "@/components/player/player-provider";
+import type { Cover } from "@/lib/cover";
 
 import { db } from "./db";
 
@@ -25,6 +26,7 @@ const listSelect = {
   subtitle: true,
   description: true,
   coverImage: true,
+  coverVideo: true,
   audioUrl: true,
   durationSeconds: true,
   episodeNumber: true,
@@ -202,24 +204,30 @@ export async function getPublishedEpisodeCount() {
   return db.episode.count({ where: publishedWhere() });
 }
 
-/** Narrows a full episode row down to what the client player needs. */
-export function toPlayerTrack(episode: {
-  id: string;
-  slug: string;
-  title: string;
-  subtitle?: string | null;
-  audioUrl: string;
-  coverImage?: string | null;
-  durationSeconds: number;
-  episodeNumber?: number | null;
-}): PlayerTrack {
+/**
+ * Narrows a full episode row down to what the client player needs. Pass the
+ * resolved cover (see episodeCover) so an episode without one shows the show's.
+ */
+export function toPlayerTrack(
+  episode: {
+    id: string;
+    slug: string;
+    title: string;
+    subtitle?: string | null;
+    audioUrl: string;
+    coverImage?: string | null;
+    durationSeconds: number;
+    episodeNumber?: number | null;
+  },
+  cover?: Cover,
+): PlayerTrack {
   return {
     id: episode.id,
     slug: episode.slug,
     title: episode.title,
     subtitle: episode.subtitle ?? null,
     audioUrl: episode.audioUrl,
-    coverImage: episode.coverImage ?? null,
+    coverImage: cover?.image ?? episode.coverImage ?? null,
     durationSeconds: episode.durationSeconds,
     episodeNumber: episode.episodeNumber ?? null,
   };

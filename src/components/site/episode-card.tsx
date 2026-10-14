@@ -2,17 +2,20 @@ import { Clock } from "lucide-react";
 import Link from "next/link";
 
 import { PlayButton } from "@/components/player/play-button";
-import { toPlayerTrack, type EpisodeListItem } from "@/server/episodes";
+import { episodeCover } from "@/lib/cover";
 import { cn, formatDate, formatDurationLabel, toFaDigits, toISODate } from "@/lib/utils";
+import { toPlayerTrack, type EpisodeListItem } from "@/server/episodes";
+import { getShowCover } from "@/server/show";
 
 /**
  * One episode, in card or row form.
  *
  * The whole card is a link to the episode page, with the play button layered
  * above it — so a click anywhere reads the show notes, but the visitor can
- * start listening without leaving the list.
+ * start listening without leaving the list. Lists show the still cover only;
+ * the animated one plays on the episode page.
  */
-export function EpisodeCard({
+export async function EpisodeCard({
   episode,
   layout = "card",
   className,
@@ -21,7 +24,18 @@ export function EpisodeCard({
   layout?: "card" | "row";
   className?: string;
 }) {
-  const track = toPlayerTrack(episode);
+  const cover = episodeCover(episode, await getShowCover());
+  const track = toPlayerTrack(episode, cover);
+
+  const thumbnail = (
+    // eslint-disable-next-line @next/next/no-img-element -- uploaded covers are served as-is
+    <img
+      src={cover.image}
+      alt=""
+      loading="lazy"
+      className="aspect-square size-16 shrink-0 rounded-xl bg-surface-2 object-cover sm:size-20"
+    />
+  );
 
   const meta = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-ink-subtle">
@@ -47,7 +61,7 @@ export function EpisodeCard({
           className,
         )}
       >
-        <PlayButton track={track} className="relative z-10 mt-0.5" />
+        {thumbnail}
         <div className="min-w-0 flex-1">
           {meta}
           <h3 className="mt-2 text-lg font-bold leading-snug">
@@ -58,6 +72,7 @@ export function EpisodeCard({
           <p className="mt-2 line-clamp-2 text-sm leading-loose text-ink-muted">{episode.description}</p>
           <CategoryLink category={episode.category} className="mt-3" />
         </div>
+        <PlayButton track={track} className="relative z-10 self-center" />
       </article>
     );
   }
@@ -70,12 +85,17 @@ export function EpisodeCard({
         className,
       )}
     >
-      {meta}
-      <h3 className="mt-3 text-xl font-bold leading-snug">
-        <Link href={`/episodes/${episode.slug}`} className="after:absolute after:inset-0">
-          {episode.title}
-        </Link>
-      </h3>
+      <div className="flex items-start gap-4">
+        {thumbnail}
+        <div className="min-w-0 flex-1">
+          {meta}
+          <h3 className="mt-2 text-xl font-bold leading-snug">
+            <Link href={`/episodes/${episode.slug}`} className="after:absolute after:inset-0">
+              {episode.title}
+            </Link>
+          </h3>
+        </div>
+      </div>
       {episode.subtitle ? <p className="mt-1.5 text-sm text-ink-subtle">{episode.subtitle}</p> : null}
       <p className="mt-3 line-clamp-3 flex-1 text-sm leading-loose text-ink-muted">{episode.description}</p>
 

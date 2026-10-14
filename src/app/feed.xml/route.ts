@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site";
+import { episodeCover, showCover } from "@/lib/cover";
 import { htmlToText } from "@/lib/sanitize";
 import { absoluteUrl as absolute } from "@/lib/seo";
 import { formatDuration } from "@/lib/utils";
@@ -12,6 +13,10 @@ import { db } from "@/server/db";
  * channel-level itunes:author / itunes:category / itunes:explicit / itunes:image
  * and a valid <language>, plus per-item <enclosure> carrying url, byte length
  * and MIME type, an itunes:summary and an HH:MM:SS itunes:duration.
+ *
+ * Covers: the channel image is the show's cover, and every item names its own
+ * (or the show's, when the episode has none). Only the still JPG/PNG goes in;
+ * podcast apps do not read animated covers from a feed.
  *
  * Built per request. The image is built without the production database, so a
  * cached feed would start life empty and podcast clients — which poll far more
@@ -35,7 +40,8 @@ export async function GET() {
   const category = show?.category ?? siteConfig.podcast.itunesCategory;
   const subcategory = show?.subcategory ?? siteConfig.podcast.itunesSubcategory;
   const explicit = show?.explicit ?? siteConfig.podcast.explicit;
-  const artwork = absolute(show?.coverImage ?? siteConfig.podcast.artwork);
+  const cover = showCover(show);
+  const artwork = absolute(cover.image);
 
   const items = episodes
     .map((episode) => {
@@ -57,7 +63,7 @@ export async function GET() {
       <itunes:explicit>${episode.explicit ? "true" : "false"}</itunes:explicit>
       <itunes:episodeType>${escape(episode.episodeType)}</itunes:episodeType>
       ${episode.episodeNumber ? `<itunes:episode>${episode.episodeNumber}</itunes:episode>` : ""}
-      ${episode.coverImage ? `<itunes:image href="${escape(absolute(episode.coverImage))}" />` : ""}
+      <itunes:image href="${escape(absolute(episodeCover(episode, cover).image))}" />
       ${[episode.category?.name, ...episode.tags.map((link) => link.tag.name)]
         .filter((name): name is string => Boolean(name))
         .map((name) => `<category>${escape(name)}</category>`)
@@ -84,6 +90,11 @@ export async function GET() {
       <itunes:email>${escape(ownerEmail)}</itunes:email>
     </itunes:owner>
     <itunes:image href="${escape(artwork)}" />
+    <image>
+      <url>${escape(artwork)}</url>
+      <title>${escape(channelTitle)}</title>
+      <link>${siteConfig.url}</link>
+    </image>
     <itunes:category text="${escape(category)}">${
       subcategory ? `\n      <itunes:category text="${escape(subcategory)}" />\n    ` : ""
     }</itunes:category>

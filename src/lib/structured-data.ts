@@ -23,7 +23,6 @@ export function personSchema() {
     "@id": PERSON_ID,
     name: siteConfig.author.name,
     jobTitle: siteConfig.author.role,
-    description: siteConfig.description,
     url: siteConfig.url,
     email: `mailto:${siteConfig.author.email}`,
     ...(sameAs.length > 0 ? { sameAs } : {}),
@@ -50,7 +49,8 @@ export function websiteSchema() {
   };
 }
 
-export function podcastSeriesSchema() {
+/** `image` is the show's cover (see showCover); defaults to the generated artwork. */
+export function podcastSeriesSchema(image: string = siteConfig.podcast.artwork) {
   return {
     "@type": "PodcastSeries",
     "@id": SERIES_ID,
@@ -59,7 +59,7 @@ export function podcastSeriesSchema() {
     url: absolute("/episodes"),
     webFeed: absolute("/feed.xml"),
     inLanguage: siteConfig.podcast.language,
-    image: absolute(siteConfig.podcast.artwork),
+    image: absolute(image),
     author: { "@id": PERSON_ID },
     publisher: { "@id": PERSON_ID },
   };
@@ -149,12 +149,11 @@ export function collectionPageSchema({
 }
 
 /** Describes the coaching/training offer for the collaboration page. */
-export function professionalServiceSchema(services: { name: string; description: string }[]) {
+export function professionalServiceSchema(services: { name: string }[]) {
   return {
     "@type": "ProfessionalService",
     "@id": `${siteConfig.url}/#service`,
     name: `${siteConfig.author.name} — ${siteConfig.author.role}`,
-    description: siteConfig.description,
     url: absolute("/collaborate"),
     provider: { "@id": PERSON_ID },
     areaServed: "IR",
@@ -164,7 +163,7 @@ export function professionalServiceSchema(services: { name: string; description:
       name: "خدمات همکاری",
       itemListElement: services.map((service) => ({
         "@type": "Offer",
-        itemOffered: { "@type": "Service", name: service.name, description: service.description },
+        itemOffered: { "@type": "Service", name: service.name },
       })),
     },
   };

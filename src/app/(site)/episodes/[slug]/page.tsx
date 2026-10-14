@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { PlayButton } from "@/components/player/play-button";
 import { ShowNotes } from "@/components/player/show-notes";
 import { JsonLd } from "@/components/seo/json-ld";
+import { CoverArt } from "@/components/site/cover-art";
 import { EpisodeCard } from "@/components/site/episode-card";
 import { ShareRow } from "@/components/site/share-row";
 import { SubscribeStrip } from "@/components/site/subscribe-strip";
@@ -17,6 +18,7 @@ import {
   podcastEpisodeSchema,
   podcastSeriesSchema,
 } from "@/lib/structured-data";
+import { episodeCover } from "@/lib/cover";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { absoluteUrl, pageMetadata } from "@/lib/seo";
 import { linkTimestamps } from "@/lib/timestamps";
@@ -27,6 +29,7 @@ import {
   getRelatedEpisodes,
   toPlayerTrack,
 } from "@/server/episodes";
+import { getShowCover } from "@/server/show";
 
 /**
  * Episode pages are prerendered at build time and refreshed by
@@ -62,15 +65,19 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
 
   const lenses = episode.lenses.map((link) => link.lens);
   const tags = episode.tags.map((link) => link.tag);
-  const related = await getRelatedEpisodes({
-    id: episode.id,
-    categoryId: episode.category?.id ?? null,
-    tagIds: tags.map((tag) => tag.id),
-  });
+  const [related, showCover] = await Promise.all([
+    getRelatedEpisodes({
+      id: episode.id,
+      categoryId: episode.category?.id ?? null,
+      tagIds: tags.map((tag) => tag.id),
+    }),
+    getShowCover(),
+  ]);
+  const cover = episodeCover(episode, showCover);
   const keywords = [episode.category?.name, ...lenses.map((lens) => lens.name), ...tags.map((tag) => tag.name)].filter(
     (name): name is string => Boolean(name),
   );
-  const track = toPlayerTrack(episode);
+  const track = toPlayerTrack(episode, cover);
   const url = absoluteUrl(`/episodes/${episode.slug}`);
 
   return (
@@ -78,8 +85,8 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
       <JsonLd
         data={graph(
           personSchema(),
-          podcastSeriesSchema(),
-          podcastEpisodeSchema({ ...episode, keywords }),
+          podcastSeriesSchema(showCover.image),
+          podcastEpisodeSchema({ ...episode, coverImage: cover.image, keywords }),
           breadcrumbSchema([
             { name: "خانه", path: "/" },
             { name: "اپیزودها", path: "/episodes" },
@@ -111,84 +118,94 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
               </ol>
             </nav>
 
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-subtle">
-              {episode.category ? (
-                <Link
-                  href={`/categories/${episode.category.slug}`}
-                  className="rounded-full bg-brand-soft px-3 py-1 font-semibold text-brand-strong transition-colors hover:bg-brand hover:text-brand-contrast"
-                >
-                  {episode.category.name}
-                </Link>
-              ) : null}
-              {episode.episodeNumber ? (
-                <span className="nums inline-flex items-center gap-1.5 font-semibold text-brand-strong">
-                  <Hash className="size-4" aria-hidden="true" />
-                  اپیزود {toFaDigits(episode.episodeNumber)}
-                </span>
-              ) : null}
-              {episode.publishedAt ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <Calendar className="size-4" aria-hidden="true" />
-                  <time dateTime={toISODate(episode.publishedAt)}>{formatDate(episode.publishedAt)}</time>
-                </span>
-              ) : null}
-              <span className="inline-flex items-center gap-1.5">
-                <Clock className="size-4" aria-hidden="true" />
-                {formatDurationLabel(episode.durationSeconds)}
-              </span>
-            </div>
+            <div className="grid items-start gap-8 md:grid-cols-[minmax(0,1fr)_15rem] lg:grid-cols-[minmax(0,1fr)_18rem]">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-subtle">
+                  {episode.category ? (
+                    <Link
+                      href={`/categories/${episode.category.slug}`}
+                      className="rounded-full bg-brand-soft px-3 py-1 font-semibold text-brand-strong transition-colors hover:bg-brand hover:text-brand-contrast"
+                    >
+                      {episode.category.name}
+                    </Link>
+                  ) : null}
+                  {episode.episodeNumber ? (
+                    <span className="nums inline-flex items-center gap-1.5 font-semibold text-brand-strong">
+                      <Hash className="size-4" aria-hidden="true" />
+                      اپیزود {toFaDigits(episode.episodeNumber)}
+                    </span>
+                  ) : null}
+                  {episode.publishedAt ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="size-4" aria-hidden="true" />
+                      <time dateTime={toISODate(episode.publishedAt)}>{formatDate(episode.publishedAt)}</time>
+                    </span>
+                  ) : null}
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="size-4" aria-hidden="true" />
+                    {formatDurationLabel(episode.durationSeconds)}
+                  </span>
+                </div>
 
-            <h1 className="mt-4 max-w-4xl text-4xl leading-tight md:text-5xl">{episode.title}</h1>
-            {episode.subtitle ? (
-              <p className="mt-3 max-w-2xl text-xl text-ink-muted">{episode.subtitle}</p>
-            ) : null}
+                <h1 className="mt-4 max-w-4xl text-4xl leading-tight md:text-5xl">{episode.title}</h1>
+                {episode.subtitle ? (
+                  <p className="mt-3 max-w-2xl text-xl text-ink-muted">{episode.subtitle}</p>
+                ) : null}
 
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <PlayButton track={track} variant="full" />
-              <a
-                href={episode.audioUrl}
-                download
-                className={buttonStyles({ variant: "outline", size: "lg", className: "h-14" })}
-              >
-                دانلود فایل صوتی
-              </a>
-            </div>
+                <div className="mt-8 flex flex-wrap items-center gap-4">
+                  <PlayButton track={track} variant="full" />
+                  <a
+                    href={episode.audioUrl}
+                    download
+                    className={buttonStyles({ variant: "outline", size: "lg", className: "h-14" })}
+                  >
+                    دانلود فایل صوتی
+                  </a>
+                </div>
 
-            {lenses.length > 0 || tags.length > 0 ? (
-              <div className="mt-8 flex flex-col gap-3">
-                {lenses.length > 0 ? (
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="text-ink-subtle">از دریچه‌ی</span>
-                    <ul className="flex flex-wrap gap-2">
-                      {lenses.map((lens) => (
-                        <li key={lens.slug}>
-                          <Link
-                            href={`/episodes?lens=${encodeURIComponent(lens.slug)}`}
-                            className="inline-block rounded-full border border-line bg-canvas px-3.5 py-1.5 font-medium text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
-                          >
-                            {lens.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+                {lenses.length > 0 || tags.length > 0 ? (
+                  <div className="mt-8 flex flex-col gap-3">
+                    {lenses.length > 0 ? (
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <span className="text-ink-subtle">از دریچه‌ی</span>
+                        <ul className="flex flex-wrap gap-2">
+                          {lenses.map((lens) => (
+                            <li key={lens.slug}>
+                              <Link
+                                href={`/episodes?lens=${encodeURIComponent(lens.slug)}`}
+                                className="inline-block rounded-full border border-line bg-canvas px-3.5 py-1.5 font-medium text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
+                              >
+                                {lens.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    {tags.length > 0 ? (
+                      <ul className="flex flex-wrap gap-2 text-sm" aria-label="برچسب‌ها">
+                        {tags.map((tag) => (
+                          <li key={tag.slug}>
+                            <Link
+                              href={`/tags/${tag.slug}`}
+                              className="inline-block rounded-full px-2 py-1 text-ink-subtle transition-colors hover:text-brand-strong"
+                            >
+                              #{tag.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
                 ) : null}
-                {tags.length > 0 ? (
-                  <ul className="flex flex-wrap gap-2 text-sm" aria-label="برچسب‌ها">
-                    {tags.map((tag) => (
-                      <li key={tag.slug}>
-                        <Link
-                          href={`/tags/${tag.slug}`}
-                          className="inline-block rounded-full px-2 py-1 text-ink-subtle transition-colors hover:text-brand-strong"
-                        >
-                          #{tag.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
               </div>
-            ) : null}
+
+              <CoverArt
+                cover={cover}
+                alt={`کاور ${episode.title}`}
+                className="order-first max-w-44 rounded-2xl shadow-lifted md:order-none md:max-w-none md:rounded-3xl"
+              />
+            </div>
           </div>
         </header>
 
@@ -218,14 +235,6 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
 
           <aside className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
             <SubscribeStrip />
-
-            {/* A quiet pointer only — the offer itself lives on /collaborate. */}
-            <p className="px-1 text-sm leading-loose text-ink-subtle">
-              می‌خواهید روی موقعیت خودتان کار کنید؟{" "}
-              <Link href="/collaborate" className="font-semibold text-ink-muted underline underline-offset-4 hover:text-brand-strong">
-                درباره‌ی همکاری
-              </Link>
-            </p>
           </aside>
         </div>
 
