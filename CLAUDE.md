@@ -42,6 +42,18 @@ Never run `npm run dev` / `next start` on the host.
 
 The admin user is created/repaired from `ADMIN_*` in `.env` on every start (`src/server/bootstrap.ts`). With `ADMIN_SYNC_PASSWORD` not `"false"`, passwords changed in the panel revert on restart.
 
+## Promo copy (demo for Instagram videos)
+
+A separate local copy for recording promo videos (`G:\Repos\promo\darshan\`, rules in `G:\Repos\promo\SPEC.md`):
+compose project `podcast-promo` on http://localhost:8018 with its own data in `data/promo/`. It starts from the newest
+production backup (`G:\apps backup\<date>\podcast-site.tar.gz`), so the show, its description and its covers are real;
+`promo/seed.ts` adds demo categories, lenses, 10 episodes (silent MP3s) and 6 inquiries, because production has none yet,
+and writes an admin session token to `data/promo/admin-session.txt` so the capture needs no password.
+It gets no `.env`, so it never sends notifications. Production, `data/podcast.db` and the dev site on 8006 are never touched.
+
+- Create / start: `bash promo/up.sh` (`--fresh` restores and seeds again)
+- Remove everything (container, image, `data/promo/`): `bash promo/down.sh`
+
 ## Rendering
 
 The image is built without the production database — it is on a mounted disk and only exists at run time — so any page prerendered at build time would be a snapshot of an empty database.

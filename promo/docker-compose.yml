@@ -1,0 +1,21 @@
+# The promo copy of the site, for recording Instagram videos (see up.sh).
+# Its own compose project, port and data folder (data/promo/), so neither the
+# dev site on 8006 nor production is touched. No env_file: the copy must not
+# send inquiry notifications to the real bot or mailbox.
+name: podcast-promo
+
+services:
+  web:
+    build:
+      context: ..
+      args:
+        NEXT_PUBLIC_SITE_URL: "http://localhost:8018"
+    ports:
+      - "127.0.0.1:8018:3000"
+    environment:
+      DATABASE_URL: "file:/app/data/podcast.db"
+      UPLOAD_DIR: "/app/data/uploads"
+      NEXT_PUBLIC_SITE_URL: "http://localhost:8018"
+      APP_SECRET: "promo-copy-only-not-a-real-secret"
+    volumes:
+      - ../data/promo:/app/data
