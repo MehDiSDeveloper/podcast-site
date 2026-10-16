@@ -89,7 +89,7 @@ export default async function DashboardPage() {
       </ul>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <section aria-labelledby="recent-inquiries" className="rounded-2xl border border-line bg-surface">
+        <section aria-labelledby="recent-inquiries" className="min-w-0 rounded-2xl border border-line bg-surface">
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <h2 id="recent-inquiries" className="text-base font-bold">
               آخرین درخواست‌های همکاری
@@ -132,7 +132,7 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <section aria-labelledby="top-episodes" className="rounded-2xl border border-line bg-surface">
+        <section aria-labelledby="top-episodes" className="min-w-0 rounded-2xl border border-line bg-surface">
           <div className="border-b border-line px-5 py-4">
             <h2 id="top-episodes" className="text-base font-bold">
               پرشنونده‌ترین اپیزودها
