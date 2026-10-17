@@ -19,6 +19,7 @@ import {
   podcastSeriesSchema,
 } from "@/lib/structured-data";
 import { episodeCover } from "@/lib/cover";
+import { episodeDownload } from "@/lib/download";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { absoluteUrl, pageMetadata } from "@/lib/seo";
 import { linkTimestamps } from "@/lib/timestamps";
@@ -78,6 +79,7 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
     (name): name is string => Boolean(name),
   );
   const track = toPlayerTrack(episode, cover);
+  const download = episodeDownload(episode);
   const url = absoluteUrl(`/episodes/${episode.slug}`);
 
   return (
@@ -155,8 +157,8 @@ export default async function EpisodePage({ params }: PageProps<"/episodes/[slug
                 <div className="mt-8 flex flex-wrap items-center gap-4">
                   <PlayButton track={track} variant="full" />
                   <a
-                    href={episode.audioUrl}
-                    download
+                    href={download.href}
+                    download={download.filename}
                     className={buttonStyles({ variant: "outline", size: "lg", className: "h-14" })}
                   >
                     دانلود فایل صوتی

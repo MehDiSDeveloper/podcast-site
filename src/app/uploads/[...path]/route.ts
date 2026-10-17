@@ -3,6 +3,8 @@ import { stat } from "node:fs/promises";
 import { extname } from "node:path";
 import { Readable } from "node:stream";
 
+import { siteConfig } from "@/config/site";
+import { DOWNLOAD_PARAM, safeFileName } from "@/lib/download";
 import { CONTENT_TYPES, resolveUploadPath } from "@/server/uploads";
 
 /**
@@ -20,6 +22,15 @@ async function serve(request: Request, segments: string[], withBody: boolean) {
     // Filenames are random and never reused, so they are safe to cache forever.
     "Cache-Control": "public, max-age=31536000, immutable",
   });
+
+  // ?download=<name> saves the file under a readable name (see episodeDownload).
+  const filename = safeFileName(new URL(request.url).searchParams.get(DOWNLOAD_PARAM) ?? "");
+  if (filename) {
+    headers.set(
+      "Content-Disposition",
+      `attachment; filename="${siteConfig.nameLatin}${extname(path)}"; filename*=UTF-8''${encodeRfc5987(filename)}`,
+    );
+  }
 
   const size = info.size;
   const range = request.headers.get("range")?.match(/^bytes=(\d*)-(\d*)$/);
@@ -47,6 +58,11 @@ async function serve(request: Request, segments: string[], withBody: boolean) {
 
   const stream = Readable.toWeb(createReadStream(path, { start, end })) as ReadableStream;
   return new Response(stream, { status, headers });
+}
+
+/** encodeURIComponent leaves ' ( ) unescaped, which RFC 5987 does not allow. */
+function encodeRfc5987(value: string) {
+  return encodeURIComponent(value).replace(/['()]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 }
 
 export async function GET(request: Request, { params }: RouteContext<"/uploads/[...path]">) {

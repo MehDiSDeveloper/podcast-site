@@ -79,6 +79,7 @@ The image is built without the production database — it is on a mounted disk a
 - A `loading.tsx` above a page that calls `notFound()` makes it return 200 instead of 404 — that's why the archive lives in `episodes/(archive)/`.
 - Admin forms submit via `useFormAction` (`components/admin/form-parts.tsx`), not `<form action>`, or React 19 wipes fields after a validation error.
 - Uploads are served by `src/app/uploads/[...path]/route.ts` (Range support); Next doesn't serve files added to `public/` after build.
+  `?download=<name>` adds a `Content-Disposition` so the episode's download button saves «درشان - اپیزود ۱ - عنوان.mp3», not the random upload name; build the link with `episodeDownload()` (`src/lib/download.ts`).
 - Persian text in `next/og` images must go through `RtlText` in `src/lib/og.tsx` (Satori has no bidi).
 - User-facing numbers go through `toFaDigits`; `.nums` must not force LTR (breaks «اپیزود ۱»).
 - Admin pages have a logout `<form>` in the sidebar before `<main>` — scope DOM queries to `main form` in tests.
