@@ -14,6 +14,8 @@ const directoryLabels: Record<keyof typeof siteConfig.listenOn, string> = {
 /**
  * Where to subscribe. Directories with an empty URL in site config are hidden,
  * so the strip degrades to just the RSS link on a fresh install.
+ * No `spotlight`: that hover tilt marks whole cards as links, and only the
+ * buttons inside this one are.
  */
 export function SubscribeStrip({ className }: { className?: string }) {
   const directories = (Object.keys(directoryLabels) as (keyof typeof siteConfig.listenOn)[])
@@ -21,7 +23,7 @@ export function SubscribeStrip({ className }: { className?: string }) {
     .filter((entry) => entry.url);
 
   return (
-    <div className={cn("glass spotlight rounded-2xl p-6", className)}>
+    <div className={cn("glass rounded-2xl p-6", className)}>
       <h2 className="text-lg font-bold">شنیدن در اپلیکیشن دلخواه‌تان</h2>
       <p className="mt-2 text-sm leading-loose text-ink-muted">
         اپیزود تازه را همان‌جایی بشنوید که همیشه پادکست گوش می‌دهید.
