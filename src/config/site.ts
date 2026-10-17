@@ -54,7 +54,7 @@ export const siteConfig = {
     spotify: "",
     applePodcasts: "",
     googlePodcasts: "",
-    castbox: "",
+    castbox: "https://castbox.fm/channel/%D8%AF%D8%B1%D8%B4%D8%A7%D9%86-id7455741",
     shenoto: "",
   },
 

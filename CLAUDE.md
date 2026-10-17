@@ -137,6 +137,7 @@ ssh vps "cd /srv/podcast-site && docker compose ps && docker compose logs --tail
 - Liara is no longer used. `liara.json` and `docs/deploy-liara.md` are legacy.
 - One-off commands: `ssh vps "cd /srv/podcast-site && docker compose exec -T web <cmd>"`.
 - RSS feed for directories (Castbox, Apple…): `https://darshan.ir/feed.xml`. Directories need at least one published episode with audio before they accept it.
+  Live on Castbox since 2026-10 (channel `id7455741`); each directory's page goes in `siteConfig.listenOn` and shows up as a button on the subscribe strip.
 
 ## Deploying
 
